@@ -1,6 +1,7 @@
 package it.skillswap.app;
 
 import it.skillswap.domain.*;
+import it.skillswap.service.ConsoleReportPrinter;
 import it.skillswap.service.ExchangeService;
 import it.skillswap.service.ReviewService;
 import it.skillswap.storage.InMemoryStorage;
@@ -15,6 +16,7 @@ public class Main {
     private static Scanner scanner = new Scanner(System.in);
     private static ExchangeService exchangeService = new ExchangeService(state);
     private static ReviewService reviewService = new ReviewService(state);
+    private static ConsoleReportPrinter printer = new ConsoleReportPrinter();
 
     public static void main(String[] args) {
         System.out.println("=== SkillSwap School ===");
@@ -25,21 +27,24 @@ public class Main {
             String choice = scanner.nextLine().trim();
 
             switch (choice) {
-                case "1" -> creaStudente();
-                case "2" -> aggiungiSkill();
-                case "3" -> aggiungiOffer();
-                case "4" -> aggiungiRequest();
-                case "5" -> listaStudenti();
-                case "6" -> listaOffer();
-                case "7" -> listaRequest();
-                case "8" -> proponiExchange();
-                case "9" -> accettaExchange();
+                case "1"  -> creaStudente();
+                case "2"  -> aggiungiSkill();
+                case "3"  -> aggiungiOffer();
+                case "4"  -> aggiungiRequest();
+                case "5"  -> listaStudenti();
+                case "6"  -> listaOffer();
+                case "7"  -> listaRequest();
+                case "8"  -> proponiExchange();
+                case "9"  -> accettaExchange();
                 case "10" -> completaExchange();
                 case "11" -> cancellaExchange();
                 case "12" -> listaExchange();
                 case "13" -> aggiungiRecensione();
                 case "14" -> listaRecensioni();
-                case "0" -> {
+                case "15" -> profiloStudente();
+                case "16" -> dettaglioExchange();
+                case "17" -> leaderboard();
+                case "0"  -> {
                     storage.save(state);
                     System.out.println("Arrivederci!");
                     running = false;
@@ -65,10 +70,14 @@ public class Main {
         System.out.println("12. Lista exchange");
         System.out.println("13. Aggiungi recensione");
         System.out.println("14. Recensioni di uno studente");
+        System.out.println("15. Profilo studente");
+        System.out.println("16. Dettaglio exchange");
+        System.out.println("17. Leaderboard");
         System.out.println("0.  Esci");
         System.out.print("Scelta: ");
     }
 
+    // ─── STUDENTI ─────────────────────────────────────────────
     private static void creaStudente() {
         System.out.print("ID studente: ");
         String id = scanner.nextLine().trim();
@@ -84,6 +93,15 @@ public class Main {
         System.out.println("Studente aggiunto: " + s);
     }
 
+    private static void listaStudenti() {
+        if (state.getStudents().isEmpty()) {
+            System.out.println("Nessuno studente registrato.");
+            return;
+        }
+        state.getStudents().forEach(System.out::println);
+    }
+
+    // ─── SKILL ────────────────────────────────────────────────
     private static void aggiungiSkill() {
         System.out.print("ID skill: ");
         String id = scanner.nextLine().trim();
@@ -97,6 +115,7 @@ public class Main {
         System.out.println("Skill aggiunta: " + skill);
     }
 
+    // ─── OFFER ────────────────────────────────────────────────
     private static void aggiungiOffer() {
         System.out.print("ID offer: ");
         String id = scanner.nextLine().trim();
@@ -126,6 +145,15 @@ public class Main {
         System.out.println("Offer aggiunta: " + offer);
     }
 
+    private static void listaOffer() {
+        if (state.getOffers().isEmpty()) {
+            System.out.println("Nessuna offer registrata.");
+            return;
+        }
+        state.getOffers().forEach(System.out::println);
+    }
+
+    // ─── REQUEST ──────────────────────────────────────────────
     private static void aggiungiRequest() {
         System.out.print("ID request: ");
         String id = scanner.nextLine().trim();
@@ -155,22 +183,6 @@ public class Main {
         System.out.println("Request aggiunta: " + request);
     }
 
-    private static void listaStudenti() {
-        if (state.getStudents().isEmpty()) {
-            System.out.println("Nessuno studente registrato.");
-            return;
-        }
-        state.getStudents().forEach(System.out::println);
-    }
-
-    private static void listaOffer() {
-        if (state.getOffers().isEmpty()) {
-            System.out.println("Nessuna offer registrata.");
-            return;
-        }
-        state.getOffers().forEach(System.out::println);
-    }
-
     private static void listaRequest() {
         if (state.getRequests().isEmpty()) {
             System.out.println("Nessuna request registrata.");
@@ -179,6 +191,7 @@ public class Main {
         state.getRequests().forEach(System.out::println);
     }
 
+    // ─── EXCHANGE ─────────────────────────────────────────────
     private static void proponiExchange() {
         System.out.print("ID exchange: ");
         String id = scanner.nextLine().trim();
@@ -236,6 +249,7 @@ public class Main {
         state.getExchanges().forEach(System.out::println);
     }
 
+    // ─── REVIEW ───────────────────────────────────────────────
     private static void aggiungiRecensione() {
         System.out.print("ID recensione: ");
         String id = scanner.nextLine().trim();
@@ -265,5 +279,37 @@ public class Main {
             return;
         }
         reviews.forEach(System.out::println);
+    }
+
+    // ─── REPORT ───────────────────────────────────────────────
+    private static void profiloStudente() {
+        System.out.print("ID studente: ");
+        String id = scanner.nextLine().trim();
+        Student student = state.getStudents().stream()
+                .filter(s -> s.getStudentId().equals(id))
+                .findFirst().orElse(null);
+        if (student == null) {
+            System.out.println("Studente non trovato.");
+            return;
+        }
+        List<Review> reviews = reviewService.getReviewsForStudent(id);
+        System.out.println(printer.printStudentProfile(student, reviews));
+    }
+
+    private static void dettaglioExchange() {
+        System.out.print("ID exchange: ");
+        String id = scanner.nextLine().trim();
+        Exchange exchange = state.getExchanges().stream()
+                .filter(e -> e.getExchangeId().equals(id))
+                .findFirst().orElse(null);
+        if (exchange == null) {
+            System.out.println("Exchange non trovato.");
+            return;
+        }
+        System.out.println(printer.printExchangeDetails(exchange));
+    }
+
+    private static void leaderboard() {
+        System.out.println(printer.printLeaderboard(state.getStudents()));
     }
 }
