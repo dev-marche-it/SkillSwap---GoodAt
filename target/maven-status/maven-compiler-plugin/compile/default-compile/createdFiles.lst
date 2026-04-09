@@ -7,7 +7,7 @@ it/skillswap/domain/Student.class
 it/skillswap/domain/Request.class
 it/skillswap/domain/SkillSwapState.class
 it/skillswap/domain/Exchange.class
-it/skillswap/domain/Offer.class
 it/skillswap/domain/Review.class
+it/skillswap/domain/Offer.class
 it/skillswap/domain/Skill.class
 it/skillswap/domain/ExchangeStatus.class

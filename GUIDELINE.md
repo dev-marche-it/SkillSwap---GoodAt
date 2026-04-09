@@ -39,7 +39,7 @@ Il progetto è sviluppato come **applicazione console Java** con **persistenza s
 ### Package consigliati
 
 | Package | Contenuto |
-|||
+|---|---|
 | `it.skillswap.domain` | Classi del dominio (`Student`, `Skill`, `Offer`, `Request`, `Exchange`, `Review`) |
 | `it.skillswap.service` | Logica applicativa (`MatchingService`, `ExchangeService`, `ReviewService`) |
 | `it.skillswap.storage` | Persistenza (`Storage`, `InMemoryStorage`, `FileStorage`) |
