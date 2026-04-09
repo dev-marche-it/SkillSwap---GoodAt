@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Main {
-    private static Storage storage = new InMemoryStorage();
+    private static Storage storage = new FileStorage();
     private static SkillSwapState state = storage.load();
     private static Scanner scanner = new Scanner(System.in);
     private static ExchangeService exchangeService = new ExchangeService(state);
