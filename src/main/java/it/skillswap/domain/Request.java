@@ -7,7 +7,7 @@ public class Request {
     private final SkillLevel minLevel;
     private final String note;
 
-    public Request(String requestId, Student student, Skill skill, String minLevel, String note) {
+    public Request(String requestId, Student student, Skill skill, SkillLevel minLevel, String note) {
         this.requestId = requestId;
         this.student = student;
         this.skill = skill;
