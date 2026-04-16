@@ -1,11 +1,11 @@
 package it.skillswap.domain;
 
 public class Request {
-    private String requestId;
-    private Student student;
-    private Skill skill;
-    private String minLevel;
-    private String note;
+    private final String requestId;
+    private final Student student;
+    private final Skill skill;
+    private final SkillLevel minLevel;
+    private final String note;
 
     public Request(String requestId, Student student, Skill skill, String minLevel, String note) {
         this.requestId = requestId;
@@ -18,7 +18,7 @@ public class Request {
     public String getRequestId() { return requestId; }
     public Student getStudent() { return student; }
     public Skill getSkill() { return skill; }
-    public String getMinLevel() { return minLevel; }
+    public SkillLevel getMinLevel() { return minLevel; }
     public String getNote() { return note; }
 
     @Override

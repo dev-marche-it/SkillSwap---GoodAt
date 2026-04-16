@@ -1,14 +1,14 @@
 package it.skillswap.domain;
 
 public class Offer {
-    private String offerId;
-    private Student student;
-    private Skill skill;
-    private String level;
-    private String note;
+    private final String offerId;
+    private final Student student;
+    private final Skill skill;
+    private final SkillLevel level;
+    private final String note;
     private boolean active;
 
-    public Offer(String offerId, Student student, Skill skill, String level, String note) {
+    public Offer(String offerId, Student student, Skill skill, SkillLevel level, String note) {
         this.offerId = offerId;
         this.student = student;
         this.skill = skill;
@@ -20,7 +20,7 @@ public class Offer {
     public String getOfferId() { return offerId; }
     public Student getStudent() { return student; }
     public Skill getSkill() { return skill; }
-    public String getLevel() { return level; }
+    public SkillLevel getLevel() { return level; }
     public String getNote() { return note; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
