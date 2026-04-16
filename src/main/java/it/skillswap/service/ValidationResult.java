@@ -1,5 +1,6 @@
 package it.skillswap.service;
 
+// Class ValidationResult - Refactor 2.3 
 public class ValidationResult {
     private final boolean valid;
     private final String message;

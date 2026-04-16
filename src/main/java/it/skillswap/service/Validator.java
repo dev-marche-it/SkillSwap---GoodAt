@@ -6,6 +6,7 @@ import it.skillswap.domain.Offer;
 import it.skillswap.domain.Review;
 import it.skillswap.domain.SkillSwapState;
 
+// Classe validator - 2.3 del refactor
 public class Validator {
 
     private static final int MIN_STARS = 1;
