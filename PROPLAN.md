@@ -285,7 +285,7 @@ feat: add custom domain exceptions hierarchy
 test: expand test suite to 20 tests with Given/When/Then
 refactor: apply Clean Code rules across all service classes
 docs: add Javadoc to all public methods
-docs: add REST endpoint map for future web integration
+docs: add REST endpoint map for future web intePer completare il punto 2.2 "Dominio", dobbiamo:gration
 ```
 
 ---
