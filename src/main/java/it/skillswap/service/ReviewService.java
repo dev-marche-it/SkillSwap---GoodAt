@@ -1,8 +1,14 @@
 package it.skillswap.service;
 
-import it.skillswap.domain.*;
-
 import java.util.List;
+
+import it.skillswap.domain.Exchange;
+import it.skillswap.domain.ExchangeStatus;
+import it.skillswap.domain.Review;
+import it.skillswap.domain.SkillSwapState;
+import it.skillswap.domain.Student;
+import it.skillswap.domain.exception.DuplicateReviewException;
+import it.skillswap.domain.exception.InvalidStarsException;
 
 public class ReviewService {
     private SkillSwapState state;
@@ -36,7 +42,12 @@ public class ReviewService {
                 .anyMatch(r -> r.getExchange().getExchangeId().equals(exchangeId)
                         && r.getReviewer().getStudentId().equals(reviewerId));
         if (alreadyReviewed) {
-            throw new IllegalStateException("Hai già lasciato una recensione per questo exchange.");
+            throw new DuplicateReviewException(exchangeId);
+        }
+
+        // Validazione stelle
+        if (stars < 1 || stars > 5) {
+            throw new InvalidStarsException(stars);
         }
 
         Review review = new Review(reviewId, exchange, reviewer, reviewee, stars, comment);

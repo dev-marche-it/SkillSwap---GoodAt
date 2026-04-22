@@ -10,6 +10,7 @@ import it.skillswap.domain.Review;
 import it.skillswap.domain.Skill;
 import it.skillswap.domain.SkillSwapState;
 import it.skillswap.domain.Student;
+import it.skillswap.domain.exception.SkillSwapException;
 import it.skillswap.service.ConsoleReportPrinter;
 import it.skillswap.service.ExchangeService;
 import it.skillswap.service.ReviewService;
@@ -202,6 +203,8 @@ public class AppController {
         try {
             Exchange e = exchangeService.propose(id, offerId, requestId);
             System.out.println("Exchange proposto: " + e);
+        } catch (SkillSwapException ex) {
+            System.out.println("Errore di dominio: " + ex.getMessage());
         } catch (Exception ex) {
             System.out.println("Errore: " + ex.getMessage());
         }
@@ -213,6 +216,8 @@ public class AppController {
         try {
             Exchange e = exchangeService.accept(id);
             System.out.println("Exchange accettato: " + e);
+        } catch (SkillSwapException ex) {
+            System.out.println("Errore di dominio: " + ex.getMessage());
         } catch (Exception ex) {
             System.out.println("Errore: " + ex.getMessage());
         }
@@ -224,6 +229,8 @@ public class AppController {
         try {
             Exchange e = exchangeService.complete(id);
             System.out.println("Exchange completato: " + e);
+        } catch (SkillSwapException ex) {
+            System.out.println("Errore di dominio: " + ex.getMessage());
         } catch (Exception ex) {
             System.out.println("Errore: " + ex.getMessage());
         }
@@ -235,6 +242,8 @@ public class AppController {
         try {
             Exchange e = exchangeService.cancel(id);
             System.out.println("Exchange cancellato: " + e);
+        } catch (SkillSwapException ex) {
+            System.out.println("Errore di dominio: " + ex.getMessage());
         } catch (Exception ex) {
             System.out.println("Errore: " + ex.getMessage());
         }
@@ -263,6 +272,8 @@ public class AppController {
         try {
             Review r = reviewService.addReview(id, exchangeId, reviewerId, stars, comment);
             System.out.println("Recensione aggiunta: " + r);
+        } catch (SkillSwapException ex) {
+            System.out.println("Errore di dominio: " + ex.getMessage());
         } catch (Exception ex) {
             System.out.println("Errore: " + ex.getMessage());
         }

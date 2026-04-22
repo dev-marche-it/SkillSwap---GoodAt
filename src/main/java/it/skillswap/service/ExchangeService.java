@@ -1,8 +1,12 @@
 package it.skillswap.service;
 
-import it.skillswap.domain.*;
-
-import java.util.List;
+import it.skillswap.domain.Exchange;
+import it.skillswap.domain.ExchangeStatus;
+import it.skillswap.domain.Offer;
+import it.skillswap.domain.Request;
+import it.skillswap.domain.SkillSwapState;
+import it.skillswap.domain.exception.InvalidStateTransitionException;
+import it.skillswap.domain.exception.OfferNotActiveException;
 
 public class ExchangeService {
     private SkillSwapState state;
@@ -17,7 +21,7 @@ public class ExchangeService {
 
         if (offer == null) throw new IllegalArgumentException("Offer non trovata: " + offerId);
         if (request == null) throw new IllegalArgumentException("Request non trovata: " + requestId);
-        if (!offer.isActive()) throw new IllegalStateException("Offer non attiva: " + offerId);
+        if (!offer.isActive()) throw new OfferNotActiveException(offerId);
         if (offer.getStudent().getStudentId().equals(request.getStudent().getStudentId())) {
             throw new IllegalStateException("Uno studente non può fare match con sé stesso.");
         }
@@ -31,7 +35,7 @@ public class ExchangeService {
         Exchange exchange = findExchange(exchangeId);
         if (exchange == null) throw new IllegalArgumentException("Exchange non trovato: " + exchangeId);
         if (exchange.getStatus() != ExchangeStatus.PROPOSED) {
-            throw new IllegalStateException("Transizione non valida: " + exchange.getStatus() + " -> ACCEPTED");
+            throw new InvalidStateTransitionException(exchange.getStatus(), ExchangeStatus.ACCEPTED);
         }
 
         exchange.setStatus(ExchangeStatus.ACCEPTED);
@@ -42,7 +46,7 @@ public class ExchangeService {
         Exchange exchange = findExchange(exchangeId);
         if (exchange == null) throw new IllegalArgumentException("Exchange non trovato: " + exchangeId);
         if (exchange.getStatus() != ExchangeStatus.ACCEPTED) {
-            throw new IllegalStateException("Transizione non valida: " + exchange.getStatus() + " -> COMPLETED");
+            throw new InvalidStateTransitionException(exchange.getStatus(), ExchangeStatus.COMPLETED);
         }
 
         exchange.setStatus(ExchangeStatus.COMPLETED);
@@ -54,7 +58,7 @@ public class ExchangeService {
         Exchange exchange = findExchange(exchangeId);
         if (exchange == null) throw new IllegalArgumentException("Exchange non trovato: " + exchangeId);
         if (exchange.getStatus() != ExchangeStatus.PROPOSED) {
-            throw new IllegalStateException("Transizione non valida: " + exchange.getStatus() + " -> CANCELLED");
+            throw new InvalidStateTransitionException(exchange.getStatus(), ExchangeStatus.CANCELLED);
         }
 
         exchange.setStatus(ExchangeStatus.CANCELLED);

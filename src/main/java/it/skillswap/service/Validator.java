@@ -5,8 +5,9 @@ import it.skillswap.domain.ExchangeStatus;
 import it.skillswap.domain.Offer;
 import it.skillswap.domain.Review;
 import it.skillswap.domain.SkillSwapState;
+import it.skillswap.domain.exception.InvalidStarsException;
+import it.skillswap.domain.exception.InvalidStateTransitionException;
 
-// Classe validator - 2.3 del refactor
 public class Validator {
 
     private static final int MIN_STARS = 1;
@@ -20,6 +21,12 @@ public class Validator {
         return ValidationResult.success();
     }
 
+    public static void validateStarsStrict(int stars) {
+        if (stars < MIN_STARS || stars > MAX_STARS) {
+            throw new InvalidStarsException(stars);
+        }
+    }
+
     public static ValidationResult validateStateTransition(ExchangeStatus from, ExchangeStatus to) {
         if (from == ExchangeStatus.COMPLETED && to != ExchangeStatus.COMPLETED) {
             return ValidationResult.failure("Non è possibile cambiare lo stato di uno scambio completato");
@@ -28,6 +35,15 @@ public class Validator {
             return ValidationResult.failure("Non è possibile cambiare lo stato di uno scambio cancellato");
         }
         return ValidationResult.success();
+    }
+
+    public static void validateStateTransitionStrict(ExchangeStatus from, ExchangeStatus to) {
+        if (from == ExchangeStatus.COMPLETED && to != ExchangeStatus.COMPLETED) {
+            throw new InvalidStateTransitionException(from, to);
+        }
+        if (from == ExchangeStatus.CANCELLED && to != ExchangeStatus.CANCELLED) {
+            throw new InvalidStateTransitionException(from, to);
+        }
     }
 
     public static ValidationResult validateOfferActive(Offer offer) {
