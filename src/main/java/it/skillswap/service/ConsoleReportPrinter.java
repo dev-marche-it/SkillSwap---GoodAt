@@ -1,8 +1,10 @@
 package it.skillswap.service;
 
-import it.skillswap.domain.*;
-
 import java.util.List;
+
+import it.skillswap.domain.Exchange;
+import it.skillswap.domain.Review;
+import it.skillswap.domain.Student;
 
 public class ConsoleReportPrinter {
 
@@ -38,7 +40,7 @@ public class ConsoleReportPrinter {
         return sb.toString();
     }
 
-    public String printMatches(List<Match> matches) {
+    public String printMatches(List<MatchResult> matches) {
         StringBuilder sb = new StringBuilder();
         sb.append(SEPARATOR).append("\n");
         sb.append("  RISULTATI MATCHING\n");
@@ -47,13 +49,13 @@ public class ConsoleReportPrinter {
         if (matches.isEmpty()) {
             sb.append("  Nessun match trovato.\n");
         } else {
-            for (Match m : matches) {
+            for (MatchResult m : matches) {
                 sb.append(THIN_SEP).append("\n");
                 sb.append("  Offer  : ").append(m.getOfferId()).append("\n");
                 sb.append("  Request: ").append(m.getRequestId()).append("\n");
                 sb.append("  Score  : ").append(m.getScore()).append("\n");
-                sb.append("  Motivi : ");
-                sb.append(String.join(", ", m.getReasons())).append("\n");
+                sb.append("  Motivo : ");
+                sb.append(m.getReason()).append("\n");
             }
         }
 

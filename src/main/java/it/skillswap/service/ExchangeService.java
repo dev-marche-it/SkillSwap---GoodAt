@@ -9,7 +9,7 @@ import it.skillswap.domain.exception.InvalidStateTransitionException;
 import it.skillswap.domain.exception.OfferNotActiveException;
 
 public class ExchangeService {
-    private SkillSwapState state;
+    private final SkillSwapState state;
 
     public ExchangeService(SkillSwapState state) {
         this.state = state;
