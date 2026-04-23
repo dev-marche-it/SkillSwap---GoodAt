@@ -8,6 +8,8 @@ import it.skillswap.domain.Offer;
 import it.skillswap.domain.Request;
 import it.skillswap.domain.Review;
 import it.skillswap.domain.Skill;
+import it.skillswap.domain.SkillCategory;
+import it.skillswap.domain.SkillLevel;
 import it.skillswap.domain.SkillSwapState;
 import it.skillswap.domain.Student;
 import it.skillswap.domain.exception.SkillSwapException;
@@ -120,9 +122,10 @@ public class AppController {
         System.out.print("Nome: ");
         String name = scanner.nextLine().trim();
         System.out.print("Categoria: ");
-        String category = scanner.nextLine().trim();
+        String categoryStr = scanner.nextLine().trim();
         String id = "K" + (state.getSkills().size() + 1);
 
+        SkillCategory category = SkillCategory.fromString(categoryStr);
         Skill skill = new Skill(id, name, category);
         state.getSkills().add(skill);
         System.out.println("Skill aggiunta: " + skill);
@@ -135,7 +138,7 @@ public class AppController {
         System.out.print("ID skill: ");
         String skillId = scanner.nextLine().trim();
         System.out.print("Livello (BEGINNER/INTERMEDIATE/ADVANCED): ");
-        String level = scanner.nextLine().trim();
+        String levelStr = scanner.nextLine().trim();
         System.out.print("Note: ");
         String note = scanner.nextLine().trim();
         String id = "O" + (state.getOffers().size() + 1);
@@ -147,6 +150,7 @@ public class AppController {
             return;
         }
 
+        SkillLevel level = SkillLevel.fromString(levelStr);
         Offer offer = new Offer(id, student, skill, level, note);
         state.getOffers().add(offer);
         System.out.println("Offer aggiunta: " + offer);
@@ -167,7 +171,7 @@ public class AppController {
         System.out.print("ID skill: ");
         String skillId = scanner.nextLine().trim();
         System.out.print("Livello minimo (BEGINNER/INTERMEDIATE/ADVANCED): ");
-        String minLevel = scanner.nextLine().trim();
+        String minLevelStr = scanner.nextLine().trim();
         System.out.print("Note: ");
         String note = scanner.nextLine().trim();
         String id = "R" + (state.getRequests().size() + 1);
@@ -179,6 +183,7 @@ public class AppController {
             return;
         }
 
+        SkillLevel minLevel = SkillLevel.fromString(minLevelStr);
         Request request = new Request(id, student, skill, minLevel, note);
         state.getRequests().add(request);
         System.out.println("Request aggiunta: " + request);

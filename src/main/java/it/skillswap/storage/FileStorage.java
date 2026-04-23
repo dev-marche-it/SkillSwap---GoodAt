@@ -1,11 +1,24 @@
 package it.skillswap.storage;
 
-import it.skillswap.domain.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import java.io.*;
-import java.nio.file.*;
-import java.time.LocalDateTime;
-import java.util.*;
+import it.skillswap.domain.Exchange;
+import it.skillswap.domain.ExchangeStatus;
+import it.skillswap.domain.Offer;
+import it.skillswap.domain.Request;
+import it.skillswap.domain.Review;
+import it.skillswap.domain.Skill;
+import it.skillswap.domain.SkillCategory;
+import it.skillswap.domain.SkillLevel;
+import it.skillswap.domain.SkillSwapState;
+import it.skillswap.domain.Student;
 
 public class FileStorage implements Storage {
 
@@ -38,7 +51,8 @@ public class FileStorage implements Storage {
         // 2. Carica skill
         for (String line : readLines("skills.csv")) {
             String[] p = line.split(";");
-            Skill sk = new Skill(p[0], p[1], p[2]);
+            SkillCategory category = SkillCategory.fromString(p[2]);
+            Skill sk = new Skill(p[0], p[1], category);
             skillMap.put(p[0], sk);
             state.getSkills().add(sk);
         }
@@ -49,7 +63,8 @@ public class FileStorage implements Storage {
             Student st = studentMap.get(p[1]);
             Skill sk = skillMap.get(p[2]);
             if (st == null || sk == null) continue;
-            Offer o = new Offer(p[0], st, sk, p[3], p[4]);
+            SkillLevel level = SkillLevel.fromString(p[3]);
+            Offer o = new Offer(p[0], st, sk, level, p[4]);
             o.setActive(Boolean.parseBoolean(p[5]));
             offerMap.put(p[0], o);
             state.getOffers().add(o);
@@ -61,7 +76,8 @@ public class FileStorage implements Storage {
             Student st = studentMap.get(p[1]);
             Skill sk = skillMap.get(p[2]);
             if (st == null || sk == null) continue;
-            Request r = new Request(p[0], st, sk, p[3], p[4]);
+            SkillLevel minLevel = SkillLevel.fromString(p[3]);
+            Request r = new Request(p[0], st, sk, minLevel, p[4]);
             requestMap.put(p[0], r);
             state.getRequests().add(r);
         }

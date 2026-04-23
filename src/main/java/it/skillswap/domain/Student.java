@@ -1,10 +1,10 @@
 package it.skillswap.domain;
 
 public class Student {
-    private String studentId;
-    private String name;
-    private String className;
-    private String email;
+    private final String studentId;
+    private final String name;
+    private final String className;
+    private final String email;
     private double ratingAvg;
     private int ratingCount;
 

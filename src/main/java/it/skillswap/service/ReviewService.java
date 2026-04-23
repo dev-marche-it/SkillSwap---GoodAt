@@ -11,7 +11,7 @@ import it.skillswap.domain.exception.DuplicateReviewException;
 import it.skillswap.domain.exception.InvalidStarsException;
 
 public class ReviewService {
-    private SkillSwapState state;
+    private final SkillSwapState state;
 
     public ReviewService(SkillSwapState state) {
         this.state = state;
