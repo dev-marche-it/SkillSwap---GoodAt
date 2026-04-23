@@ -31,6 +31,9 @@ Per farla funzionare correttamente nell'IDE:
 Da qui in avanti puoi usare annotazioni come `@Getter`, `@Setter`, `@Data`, `@Builder` sulle classi di dominio
 per eliminare boilerplate (getter/setter, costruttori, ecc.).
 
+
+ | __UPDATED:__ La directory __*docs*__ contiene ora tutta la documentazione del progetto. |
+ | --- |
 ## TODO
 
 - [x] Installare Maven e aggiungere dipendenza Lombok nel `pom.xml`
