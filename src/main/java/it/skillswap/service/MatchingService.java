@@ -6,7 +6,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class MatchingService {
-    private SkillSwapState state;
+    private final SkillSwapState state;
 
     public MatchingService(SkillSwapState state) {
         this.state = state;
@@ -149,10 +149,7 @@ public class MatchingService {
     }
 
     // BEGINNER < INTERMEDIATE < ADVANCED
-    private boolean isLevelSufficient(String offerLevel, String minLevel) {
-        List<String> levels = List.of("BEGINNER", "INTERMEDIATE", "ADVANCED");
-        int offerIdx = levels.indexOf(offerLevel);
-        int minIdx = levels.indexOf(minLevel);
-        return offerIdx >= minIdx;
+    private boolean isLevelSufficient(SkillLevel offerLevel, SkillLevel minLevel) {
+        return offerLevel.isSufficientFor(minLevel);
     }
 }
