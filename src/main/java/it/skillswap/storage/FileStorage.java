@@ -37,13 +37,8 @@ public class FileStorage implements Storage {
         // 1. Carica studenti
         for (String line : readLines("students.csv")) {
             String[] p = line.split(";");
+            if (p.length < 4) continue;
             Student s = new Student(p[0], p[1], p[2], p[3]);
-            if (p.length > 4) {
-                int count = Integer.parseInt(p[5]);
-                for (int i = 0; i < count; i++) {
-                    // ratingAvg e ratingCount caricati direttamente
-                }
-            }
             studentMap.put(p[0], s);
             state.getStudents().add(s);
         }
@@ -51,6 +46,7 @@ public class FileStorage implements Storage {
         // 2. Carica skill
         for (String line : readLines("skills.csv")) {
             String[] p = line.split(";");
+            if (p.length < 3) continue;
             SkillCategory category = SkillCategory.fromString(p[2]);
             Skill sk = new Skill(p[0], p[1], category);
             skillMap.put(p[0], sk);
@@ -60,6 +56,7 @@ public class FileStorage implements Storage {
         // 3. Carica offer
         for (String line : readLines("offers.csv")) {
             String[] p = line.split(";");
+            if (p.length < 6) continue;
             Student st = studentMap.get(p[1]);
             Skill sk = skillMap.get(p[2]);
             if (st == null || sk == null) continue;
@@ -73,6 +70,7 @@ public class FileStorage implements Storage {
         // 4. Carica request
         for (String line : readLines("requests.csv")) {
             String[] p = line.split(";");
+            if (p.length < 5) continue;
             Student st = studentMap.get(p[1]);
             Skill sk = skillMap.get(p[2]);
             if (st == null || sk == null) continue;
@@ -85,6 +83,7 @@ public class FileStorage implements Storage {
         // 5. Carica exchange
         for (String line : readLines("exchanges.csv")) {
             String[] p = line.split(";", -1);
+            if (p.length < 4) continue;
             Offer o = offerMap.get(p[1]);
             Request r = requestMap.get(p[2]);
             if (o == null || r == null) continue;

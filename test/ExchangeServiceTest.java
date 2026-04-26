@@ -92,7 +92,7 @@ public class ExchangeServiceTest {
     @Test
     public void shouldThrowInvalidStateTransitionException_WhenAcceptingAlreadyAccepted() {
         // GIVEN: Exchange already accepted
-        Exchange exchange = exchangeService.propose("E1", "O1", "R1");
+        exchangeService.propose("E1", "O1", "R1");
         exchangeService.accept("E1");
 
         // WHEN/THEN: Cannot accept again
@@ -104,9 +104,8 @@ public class ExchangeServiceTest {
     @Test
     public void shouldCompleteExchange_WhenStatusIsACCEPTED() {
         // GIVEN: Exchange in ACCEPTED status
-        Exchange exchange = exchangeService.propose("E1", "O1", "R1");
+        exchangeService.propose("E1", "O1", "R1");
         exchangeService.accept("E1");
-        boolean offerActiveBefore = offer.isActive();
 
         // WHEN: Complete exchange
         Exchange result = exchangeService.complete("E1");

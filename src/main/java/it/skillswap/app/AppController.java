@@ -125,10 +125,14 @@ public class AppController {
         String categoryStr = scanner.nextLine().trim();
         String id = "K" + (state.getSkills().size() + 1);
 
-        SkillCategory category = SkillCategory.fromString(categoryStr);
-        Skill skill = new Skill(id, name, category);
-        state.getSkills().add(skill);
-        System.out.println("Skill aggiunta: " + skill);
+        try {
+            SkillCategory category = SkillCategory.fromString(categoryStr);
+            Skill skill = new Skill(id, name, category);
+            state.getSkills().add(skill);
+            System.out.println("Skill aggiunta: " + skill);
+        } catch (IllegalArgumentException ex) {
+            System.out.println("Categoria non valida: " + categoryStr);
+        }
     }
 
     // ─── OFFER ────────────────────────────────────────────────
@@ -150,10 +154,14 @@ public class AppController {
             return;
         }
 
-        SkillLevel level = SkillLevel.fromString(levelStr);
-        Offer offer = new Offer(id, student, skill, level, note);
-        state.getOffers().add(offer);
-        System.out.println("Offer aggiunta: " + offer);
+        try {
+            SkillLevel level = SkillLevel.fromString(levelStr);
+            Offer offer = new Offer(id, student, skill, level, note);
+            state.getOffers().add(offer);
+            System.out.println("Offer aggiunta: " + offer);
+        } catch (IllegalArgumentException ex) {
+            System.out.println("Livello non valido: " + levelStr);
+        }
     }
 
     private void handleListaOffer() {
@@ -183,10 +191,14 @@ public class AppController {
             return;
         }
 
-        SkillLevel minLevel = SkillLevel.fromString(minLevelStr);
-        Request request = new Request(id, student, skill, minLevel, note);
-        state.getRequests().add(request);
-        System.out.println("Request aggiunta: " + request);
+        try {
+            SkillLevel minLevel = SkillLevel.fromString(minLevelStr);
+            Request request = new Request(id, student, skill, minLevel, note);
+            state.getRequests().add(request);
+            System.out.println("Request aggiunta: " + request);
+        } catch (IllegalArgumentException ex) {
+            System.out.println("Livello minimo non valido: " + minLevelStr);
+        }
     }
 
     private void handleListaRequest() {
