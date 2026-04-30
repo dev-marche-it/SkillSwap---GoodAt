@@ -40,7 +40,7 @@ per eliminare boilerplate (getter/setter, costruttori, ecc.).
 - [x] Migrare struttura cartelle a `src/main/java/it/skillswap/`
 - [X] Verificare il funzionamento di Lombok e Maven con `mvn clean compile`
 - [X] Minor fixes e inizio test effettivo
-- [ ] Aggiustamento struttura del progetto per garantire solidità
+- [X] Aggiustamento struttura del progetto per garantire solidità
 - [ ] Eliminazione codice superfluo per garantire "Clean code" Standard
 - [ ] Inizio sviluppo progettuale dell'interfaccia WEB ( CON ALTRE BRANCH E NUOVO CODICE IN CARTELLA WEB)
 
