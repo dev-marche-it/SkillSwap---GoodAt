@@ -1,5 +1,6 @@
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
@@ -19,14 +20,16 @@ public class ValidatorTest {
     @Test
     public void shouldThrowInvalidStarsException_WhenStarsInvalid() {
         // WHEN/THEN: Stars below minimum throws exception
-        assertThrows(InvalidStarsException.class, () -> {
+        InvalidStarsException ex1 = assertThrows(InvalidStarsException.class, () -> {
             Validator.validateStarsStrict(0);
         });
+        assertNotNull(ex1);
 
         // WHEN/THEN: Stars above maximum throws exception
-        assertThrows(InvalidStarsException.class, () -> {
+        InvalidStarsException ex2 = assertThrows(InvalidStarsException.class, () -> {
             Validator.validateStarsStrict(6);
         });
+        assertNotNull(ex2);
 
         // WHEN/THEN: Valid stars do not throw
         assertDoesNotThrow(() -> {
@@ -37,14 +40,16 @@ public class ValidatorTest {
     @Test
     public void shouldThrowInvalidStateTransitionException_WhenTransitionInvalid() {
         // WHEN/THEN: COMPLETED to ACCEPTED is invalid
-        assertThrows(InvalidStateTransitionException.class, () -> {
+        InvalidStateTransitionException ex1 = assertThrows(InvalidStateTransitionException.class, () -> {
             Validator.validateStateTransitionStrict(ExchangeStatus.COMPLETED, ExchangeStatus.ACCEPTED);
         });
+        assertNotNull(ex1);
 
         // WHEN/THEN: CANCELLED to PROPOSED is invalid
-        assertThrows(InvalidStateTransitionException.class, () -> {
+        InvalidStateTransitionException ex2 = assertThrows(InvalidStateTransitionException.class, () -> {
             Validator.validateStateTransitionStrict(ExchangeStatus.CANCELLED, ExchangeStatus.PROPOSED);
         });
+        assertNotNull(ex2);
 
         // WHEN/THEN: Valid transition does not throw
         assertDoesNotThrow(() -> {

@@ -1,18 +1,36 @@
 package it.skillswap.service;
 
-import it.skillswap.domain.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import it.skillswap.domain.Offer;
+import it.skillswap.domain.Request;
+import it.skillswap.domain.SkillLevel;
+import it.skillswap.domain.SkillSwapState;
+import it.skillswap.domain.Student;
+
+/**
+ * Service for finding matches between offers and requests.
+ * Implements bidirectional matching algorithm with quality scoring.
+ */
 public class MatchingService {
     private final SkillSwapState state;
 
+    /**
+     * Constructs a MatchingService with a state reference.
+     * @param state the application state containing offers and requests
+     */
     public MatchingService(SkillSwapState state) {
         this.state = state;
     }
 
-    // Trova chi offre la skill che lo studente sta cercando
+    /**
+     * Finds one-way matches where offers match a student's request.
+     *
+     * @param studentId the ID of the student seeking matches
+     * @return list of matching results sorted by score descending
+     */
     public List<MatchResult> findOneWayMatches(String studentId) {
         List<MatchResult> results = new ArrayList<>();
 
