@@ -14,7 +14,15 @@ La roadmap dettagliata è in `docs/Web_integration.md`. Branch suggeriti (una fa
 | W2 | `feature/web-csv-reader` | lettura CSV allineata a `FileStorage` |
 | W3+ | `feature/web-routes`, … | route, login, template (vedi doc) |
 
-**W1 — avvio locale:** da `web/`, `pip install -r requirements.txt` poi `python app.py`. Browser: `http://localhost:5000`.
+**W1 — avvio locale**
+
+- **Windows (Python da python.org / Store):** da `web/`, `pip install -r requirements.txt` poi `python app.py`.
+- **WSL / Linux (PEP 668):** non usare `pip` sul Python di sistema. Da `web/`:
+  1. Se `python3 -m venv .venv` dice che manca `ensurepip`, in WSL Debian/Ubuntu: `sudo apt install python3.12-venv` (o `python3-venv`).
+  2. `python3 -m venv .venv` → `source .venv/bin/activate` → `pip install -r requirements.txt` → `python app.py`.
+  Su Windows senza WSL: `.venv\Scripts\activate` dopo aver creato il venv con `python -m venv .venv`.
+
+Browser: `http://localhost:5000`.
 
 ---
 
