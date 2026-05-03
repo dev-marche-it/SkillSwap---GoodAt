@@ -9,8 +9,8 @@ import it.skillswap.domain.exception.InvalidStarsException;
 import it.skillswap.domain.exception.InvalidStateTransitionException;
 
 /**
- * Centralized validation utility for business logic rules.
- * Provides both soft validation (via ValidationResult) and strict validation (via exceptions).
+ * Utilità di validazione centralizzata per le regole di business.
+ * Offre validazione "soft" (tramite {@link ValidationResult}) e "strict" (tramite eccezioni).
  */
 public class Validator {
 
@@ -19,10 +19,10 @@ public class Validator {
     private static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@(.+)$";
 
     /**
-     * Validates star rating in soft mode (returns ValidationResult).
+     * Valida il voto in stelle in modalità soft (restituisce {@link ValidationResult}).
      *
-     * @param stars the rating to validate
-     * @return ValidationResult indicating success or failure
+     * @param stars valutazione da controllare
+     * @return esito con messaggio in caso di fallimento
      */
     public static ValidationResult validateStars(int stars) {
         if (stars < MIN_STARS || stars > MAX_STARS) {
@@ -32,10 +32,10 @@ public class Validator {
     }
 
     /**
-     * Validates star rating in strict mode (throws exception).
+     * Valida il voto in stelle in modalità strict (lancia eccezione).
      *
-     * @param stars the rating to validate
-     * @throws InvalidStarsException if rating is outside valid range
+     * @param stars valutazione da controllare
+     * @throws InvalidStarsException se fuori dall'intervallo valido
      */
     public static void validateStarsStrict(int stars) {
         if (stars < MIN_STARS || stars > MAX_STARS) {
@@ -44,11 +44,11 @@ public class Validator {
     }
 
     /**
-     * Validates state transition in soft mode (returns ValidationResult).
+     * Valida la transizione di stato in modalità soft.
      *
-     * @param from current state
-     * @param to   target state
-     * @return ValidationResult indicating success or failure
+     * @param from stato corrente
+     * @param to   stato target
+     * @return esito con messaggio in caso di fallimento
      */
     public static ValidationResult validateStateTransition(ExchangeStatus from, ExchangeStatus to) {
         if (from == ExchangeStatus.COMPLETED && to != ExchangeStatus.COMPLETED) {
@@ -61,11 +61,11 @@ public class Validator {
     }
 
     /**
-     * Validates state transition in strict mode (throws exception).
+     * Valida la transizione di stato in modalità strict.
      *
-     * @param from current state
-     * @param to   target state
-     * @throws InvalidStateTransitionException if transition is invalid
+     * @param from stato corrente
+     * @param to   stato target
+     * @throws InvalidStateTransitionException se la transizione non è consentita
      */
     public static void validateStateTransitionStrict(ExchangeStatus from, ExchangeStatus to) {
         if (from == ExchangeStatus.COMPLETED && to != ExchangeStatus.COMPLETED) {
@@ -77,10 +77,10 @@ public class Validator {
     }
 
     /**
-     * Validates that an offer is active.
+     * Verifica che un'offerta sia ancora attiva.
      *
-     * @param offer the offer to check
-     * @return ValidationResult indicating if offer is active
+     * @param offer offerta da controllare
+     * @return esito positivo se attiva
      */
     public static ValidationResult validateOfferActive(Offer offer) {
         if (!offer.isActive()) {
@@ -89,6 +89,12 @@ public class Validator {
         return ValidationResult.success();
     }
 
+    /**
+     * Valida email non vuota e forma minima locale@dominio.
+     *
+     * @param email indirizzo grezzo
+     * @return successo o fallimento con messaggio
+     */
     public static ValidationResult validateEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             return ValidationResult.failure("L'email non può essere vuota");
@@ -99,6 +105,13 @@ public class Validator {
         return ValidationResult.success();
     }
 
+    /**
+     * Controllo soft: nessuna recensione esistente per lo scambio indicato (qualsiasi recensore).
+     *
+     * @param exchange scambio candidato
+     * @param state    stato la cui lista recensioni viene scandita
+     * @return successo se nessuna recensione punta a questo id scambio, altrimenti fallimento
+     */
     public static ValidationResult validateUniqueReview(Exchange exchange, SkillSwapState state) {
         for (Review review : state.getReviews()) {
             if (review.getExchange().getExchangeId().equals(exchange.getExchangeId())) {

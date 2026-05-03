@@ -8,13 +8,30 @@ import it.skillswap.domain.SkillSwapState;
 import it.skillswap.domain.exception.InvalidStateTransitionException;
 import it.skillswap.domain.exception.OfferNotActiveException;
 
+/**
+ * Servizio applicativo per il ciclo di vita degli {@link Exchange}: proposta, accettazione, completamento e annullamento.
+ */
 public class ExchangeService {
     private final SkillSwapState state;
 
+    /**
+     * @param state aggregato mutabile che contiene offerte, richieste e scambi
+     */
     public ExchangeService(SkillSwapState state) {
         this.state = state;
     }
 
+    /**
+     * Crea un nuovo scambio proposto se l'offerta è attiva e coinvolge due studenti distinti.
+     *
+     * @param exchangeId nuovo id dello scambio
+     * @param offerId    id dell'offerta da collegare
+     * @param requestId  id della richiesta da collegare
+     * @return lo scambio creato in stato {@link ExchangeStatus#PROPOSED}
+     * @throws OfferNotActiveException se l'offerta non è attiva
+     * @throws IllegalArgumentException se l'id offerta o richiesta è sconosciuto
+     * @throws IllegalStateException se offerta e richiesta appartengono allo stesso studente
+     */
     public Exchange propose(String exchangeId, String offerId, String requestId) {
         Offer offer = findOffer(offerId);
         Request request = findRequest(requestId);
@@ -31,6 +48,14 @@ public class ExchangeService {
         return exchange;
     }
 
+    /**
+     * Accetta uno scambio proposto.
+     *
+     * @param exchangeId id dello scambio
+     * @return scambio aggiornato in stato {@link ExchangeStatus#ACCEPTED}
+     * @throws IllegalArgumentException se l'id è sconosciuto
+     * @throws InvalidStateTransitionException se lo stato attuale non è {@link ExchangeStatus#PROPOSED}
+     */
     public Exchange accept(String exchangeId) {
         Exchange exchange = findExchange(exchangeId);
         if (exchange == null) throw new IllegalArgumentException("Exchange non trovato: " + exchangeId);
@@ -42,6 +67,14 @@ public class ExchangeService {
         return exchange;
     }
 
+    /**
+     * Segna come completato uno scambio accettato e disattiva l'offerta collegata.
+     *
+     * @param exchangeId id dello scambio
+     * @return scambio aggiornato in stato {@link ExchangeStatus#COMPLETED}
+     * @throws IllegalArgumentException se l'id è sconosciuto
+     * @throws InvalidStateTransitionException se lo stato attuale non è {@link ExchangeStatus#ACCEPTED}
+     */
     public Exchange complete(String exchangeId) {
         Exchange exchange = findExchange(exchangeId);
         if (exchange == null) throw new IllegalArgumentException("Exchange non trovato: " + exchangeId);
@@ -54,6 +87,14 @@ public class ExchangeService {
         return exchange;
     }
 
+    /**
+     * Annulla uno scambio ancora solo proposto.
+     *
+     * @param exchangeId id dello scambio
+     * @return scambio aggiornato in stato {@link ExchangeStatus#CANCELLED}
+     * @throws IllegalArgumentException se l'id è sconosciuto
+     * @throws InvalidStateTransitionException se lo stato attuale non è {@link ExchangeStatus#PROPOSED}
+     */
     public Exchange cancel(String exchangeId) {
         Exchange exchange = findExchange(exchangeId);
         if (exchange == null) throw new IllegalArgumentException("Exchange non trovato: " + exchangeId);

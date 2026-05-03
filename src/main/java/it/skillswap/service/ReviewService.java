@@ -10,13 +10,33 @@ import it.skillswap.domain.Student;
 import it.skillswap.domain.exception.DuplicateReviewException;
 import it.skillswap.domain.exception.InvalidStarsException;
 
+/**
+ * Servizio applicativo per creare {@link Review} e interrogare le recensioni per studente valutato.
+ */
 public class ReviewService {
     private final SkillSwapState state;
 
+    /**
+     * @param state aggregato mutabile che contiene scambi, studenti e recensioni
+     */
     public ReviewService(SkillSwapState state) {
         this.state = state;
     }
 
+    /**
+     * Aggiunge una recensione per uno scambio completato, aggiorna la media del valutato e impone una sola recensione per recensore per scambio.
+     *
+     * @param reviewId   nuovo id recensione
+     * @param exchangeId scambio recensito (deve essere {@link ExchangeStatus#COMPLETED})
+     * @param reviewerId id dello studente che scrive (deve essere partecipante)
+     * @param stars      voto 1–5
+     * @param comment    commento libero
+     * @return la recensione persistita
+     * @throws IllegalArgumentException se scambio o recensore sconosciuti
+     * @throws IllegalStateException se lo scambio non è completato o il recensore non è tra i partecipanti
+     * @throws DuplicateReviewException se questo recensore ha già recensito questo scambio
+     * @throws InvalidStarsException se le stelle sono fuori dall'intervallo 1–5
+     */
     public Review addReview(String reviewId, String exchangeId, String reviewerId, int stars, String comment) {
         Exchange exchange = findExchange(exchangeId);
         if (exchange == null) throw new IllegalArgumentException("Exchange non trovato: " + exchangeId);
@@ -27,7 +47,6 @@ public class ReviewService {
         Student reviewer = findStudent(reviewerId);
         if (reviewer == null) throw new IllegalArgumentException("Studente non trovato: " + reviewerId);
 
-        // Il reviewee è l'altro studente nello scambio
         Student reviewee;
         if (exchange.getOffer().getStudent().getStudentId().equals(reviewerId)) {
             reviewee = exchange.getRequest().getStudent();
@@ -37,7 +56,6 @@ public class ReviewService {
             throw new IllegalStateException("Il reviewer non è coinvolto in questo exchange.");
         }
 
-        // Uno studente può lasciare al massimo una recensione per scambio
         boolean alreadyReviewed = state.getReviews().stream()
                 .anyMatch(r -> r.getExchange().getExchangeId().equals(exchangeId)
                         && r.getReviewer().getStudentId().equals(reviewerId));
@@ -45,7 +63,6 @@ public class ReviewService {
             throw new DuplicateReviewException(exchangeId);
         }
 
-        // Validazione stelle
         if (stars < 1 || stars > 5) {
             throw new InvalidStarsException(stars);
         }
@@ -53,12 +70,17 @@ public class ReviewService {
         Review review = new Review(reviewId, exchange, reviewer, reviewee, stars, comment);
         state.getReviews().add(review);
 
-        // Aggiorna il rating del reviewee
         reviewee.addRating(stars);
 
         return review;
     }
 
+    /**
+     * Restituisce tutte le recensioni in cui il valutato è lo studente indicato.
+     *
+     * @param studentId id dello studente che riceve il feedback
+     * @return lista immutabile di recensioni (può essere vuota)
+     */
     public List<Review> getReviewsForStudent(String studentId) {
         return state.getReviews().stream()
                 .filter(r -> r.getReviewee().getStudentId().equals(studentId))

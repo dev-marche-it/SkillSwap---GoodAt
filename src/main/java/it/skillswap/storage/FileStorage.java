@@ -20,10 +20,20 @@ import it.skillswap.domain.SkillLevel;
 import it.skillswap.domain.SkillSwapState;
 import it.skillswap.domain.Student;
 
+/**
+ * {@link Storage} basato su CSV nella cartella {@code data/}: file separati per tipo di entità, delimitatore punto e virgola.
+ * Errori in lettura producono righe vuote; errori in scrittura vanno su uscita standard senza lanciare eccezioni.
+ */
 public class FileStorage implements Storage {
 
     private static final String DATA_DIR = "data/";
 
+    /**
+     * {@inheritDoc}
+     * <p>File mancanti equivalgono a contenuto vuoto. Righe malformate vengono ignorate.</p>
+     *
+     * @return stato appena costruito e popolato dai CSV se presenti
+     */
     @Override
     public SkillSwapState load() {
         SkillSwapState state = new SkillSwapState();
@@ -108,6 +118,12 @@ public class FileStorage implements Storage {
         return state;
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>Scrittura tramite file temporaneo e rinomina atomica per ogni CSV.</p>
+     *
+     * @param state stato completo da serializzare
+     */
     @Override
     public void save(SkillSwapState state) {
         saveStudents(state.getStudents());

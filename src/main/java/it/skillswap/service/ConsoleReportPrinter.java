@@ -6,11 +6,21 @@ import it.skillswap.domain.Exchange;
 import it.skillswap.domain.Review;
 import it.skillswap.domain.Student;
 
+/**
+ * Costruisce report in testo semplice per l'output su console (profilo, match, dettaglio scambio, classifica).
+ */
 public class ConsoleReportPrinter {
 
     private static final String SEPARATOR = "=".repeat(50);
     private static final String THIN_SEP  = "-".repeat(50);
 
+    /**
+     * Formatta il profilo studente con media voti e recensioni ricevute.
+     *
+     * @param student studente da mostrare
+     * @param reviews recensioni in cui {@code student} è il valutato
+     * @return stringa multilinea del report
+     */
     public String printStudentProfile(Student student, List<Review> reviews) {
         StringBuilder sb = new StringBuilder();
         sb.append(SEPARATOR).append("\n");
@@ -40,6 +50,12 @@ public class ConsoleReportPrinter {
         return sb.toString();
     }
 
+    /**
+     * Formatta una lista di {@link MatchResult} per l'interfaccia a riga di comando.
+     *
+     * @param matches risultati da {@link MatchingService}
+     * @return stringa multilinea del report
+     */
     public String printMatches(List<MatchResult> matches) {
         StringBuilder sb = new StringBuilder();
         sb.append(SEPARATOR).append("\n");
@@ -63,6 +79,12 @@ public class ConsoleReportPrinter {
         return sb.toString();
     }
 
+    /**
+     * Formatta un singolo scambio con stato e timestamp.
+     *
+     * @param exchange scambio da mostrare
+     * @return stringa multilinea del report
+     */
     public String printExchangeDetails(Exchange exchange) {
         StringBuilder sb = new StringBuilder();
         sb.append(SEPARATOR).append("\n");
@@ -80,6 +102,12 @@ public class ConsoleReportPrinter {
         return sb.toString();
     }
 
+    /**
+     * Formatta la classifica: studenti con almeno una valutazione, ordinati per {@link Student#getRatingAvg()} decrescente.
+     *
+     * @param students elenco completo studenti (tipicamente tutto lo {@link it.skillswap.domain.SkillSwapState})
+     * @return stringa multilinea della classifica
+     */
     public String printLeaderboard(List<Student> students) {
         StringBuilder sb = new StringBuilder();
         sb.append(SEPARATOR).append("\n");

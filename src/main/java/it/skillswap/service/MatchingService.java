@@ -11,25 +11,24 @@ import it.skillswap.domain.SkillSwapState;
 import it.skillswap.domain.Student;
 
 /**
- * Service for finding matches between offers and requests.
- * Implements bidirectional matching algorithm with quality scoring.
+ * Servizio per trovare abbinamenti tra offerte e richieste.
+ * Implementa algoritmo di matching bidirezionale con punteggio di qualità.
  */
 public class MatchingService {
     private final SkillSwapState state;
 
     /**
-     * Constructs a MatchingService with a state reference.
-     * @param state the application state containing offers and requests
+     * @param state stato applicativo con offerte e richieste
      */
     public MatchingService(SkillSwapState state) {
         this.state = state;
     }
 
     /**
-     * Finds one-way matches where offers match a student's request.
+     * Trova abbinamenti one-way: offerte di altri che soddisfano le richieste dello studente.
      *
-     * @param studentId the ID of the student seeking matches
-     * @return list of matching results sorted by score descending
+     * @param studentId id dello studente che cerca match
+     * @return risultati ordinati per punteggio decrescente
      */
     public List<MatchResult> findOneWayMatches(String studentId) {
         List<MatchResult> results = new ArrayList<>();
@@ -70,7 +69,12 @@ public class MatchingService {
         return results;
     }
 
-    // Trova match reciproci: io offro X cerco Y, l'altro offre Y cerca X
+    /**
+     * Trova scambi reciproci: l'offerta di un altro soddisfa la richiesta di questo studente e viceversa.
+     *
+     * @param studentId id dello studente che cerca opportunità di swap
+     * @return righe {@link MatchResult} con punteggio totale decrescente; vuota se studente assente o nessuno scambio reciproco
+     */
     public List<MatchResult> findSwapMatches(String studentId) {
         List<MatchResult> results = new ArrayList<>();
 
