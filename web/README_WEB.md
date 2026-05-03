@@ -4,6 +4,18 @@ Questo documento descrive gli endpoint HTTP che un layer web (Spring Boot, Jakar
 
 Convenzioni: JSON, `Content-Type: application/json`, identificatori stringa come nel dominio (`S1`, `O1`, …). Gli errori di dominio possono mappare su `400` / `404` / `409` con corpo `{ "error": "messaggio" }`.
 
+### Sviluppo incrementale (Flask)
+
+La roadmap dettagliata è in `docs/Web_integration.md`. Branch suggeriti (una fase per PR):
+
+| Fase | Branch esempio | Contenuto |
+|------|------------------|-----------|
+| W1 | `feature/web-w1-flask-setup` | `requirements.txt`, `config.py`, `app.py` minimale |
+| W2 | `feature/web-csv-reader` | lettura CSV allineata a `FileStorage` |
+| W3+ | `feature/web-routes`, … | route, login, template (vedi doc) |
+
+**W1 — avvio locale:** da `web/`, `pip install -r requirements.txt` poi `python app.py`. Browser: `http://localhost:5000`.
+
 ---
 
 ## Studenti e anagrafica
