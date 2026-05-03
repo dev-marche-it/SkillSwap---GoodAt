@@ -15,60 +15,86 @@ import it.skillswap.domain.Student;
 import it.skillswap.domain.exception.SkillSwapException;
 import it.skillswap.service.ConsoleReportPrinter;
 import it.skillswap.service.ExchangeService;
+import it.skillswap.service.MatchResult;
+import it.skillswap.service.MatchingService;
 import it.skillswap.service.ReviewService;
 import it.skillswap.storage.Storage;
 
+/**
+ * Front-end console interattivo: legge l'input utente, modifica {@link SkillSwapState}, delega ai service
+ * e persiste tramite {@link Storage} all'uscita.
+ */
 public class AppController {
     private final SkillSwapState state;
     private final Storage storage;
     private final Scanner scanner;
     private final ExchangeService exchangeService;
     private final ReviewService reviewService;
+    private final MatchingService matchingService;
     private final ConsoleReportPrinter printer;
 
+    /**
+     * @param state   stato applicativo caricato o vuoto
+     * @param storage destinazione di {@link Storage#save} in uscita
+     */
     public AppController(SkillSwapState state, Storage storage) {
         this.state = state;
         this.storage = storage;
         this.scanner = new Scanner(System.in);
         this.exchangeService = new ExchangeService(state);
         this.reviewService = new ReviewService(state);
+        this.matchingService = new MatchingService(state);
         this.printer = new ConsoleReportPrinter();
     }
 
+    /**
+     * Esegue il ciclo del menu principale finché l'utente non sceglie l'uscita (opzione {@code 0}).
+     */
     public void run() {
         System.out.println("=== SkillSwap School ===");
         boolean running = true;
-
         while (running) {
             printMenu();
-            String choice = scanner.nextLine().trim();
-
-            switch (choice) {
-                case "1"  -> handleCreaStudente();
-                case "2"  -> handleAggiungiSkill();
-                case "3"  -> handleAggiungiOffer();
-                case "4"  -> handleAggiungiRequest();
-                case "5"  -> handleListaStudenti();
-                case "6"  -> handleListaOffer();
-                case "7"  -> handleListaRequest();
-                case "8"  -> handleProponiExchange();
-                case "9"  -> handleAccettaExchange();
-                case "10" -> handleCompletaExchange();
-                case "11" -> handleCancellaExchange();
-                case "12" -> handleListaExchange();
-                case "13" -> handleAggiungiRecensione();
-                case "14" -> handleListaRecensioni();
-                case "15" -> handleProfiloStudente();
-                case "16" -> handleDettaglioExchange();
-                case "17" -> handleLeaderboard();
-                case "0"  -> {
-                    storage.save(state);
-                    System.out.println("Arrivederci!");
-                    running = false;
-                }
-                default -> System.out.println("Scelta non valida.");
-            }
+            running = handleChoice(scanner.nextLine().trim());
         }
+    }
+
+    /**
+     * @return {@code false} se l'utente ha scelto l'uscita (stato già salvato)
+     */
+    private boolean handleChoice(String choice) {
+        return switch (choice) {
+            case "1"  -> { handleCreaStudente(); yield true; }
+            case "2"  -> { handleAggiungiSkill(); yield true; }
+            case "3"  -> { handleAggiungiOffer(); yield true; }
+            case "4"  -> { handleAggiungiRequest(); yield true; }
+            case "5"  -> { handleListaStudenti(); yield true; }
+            case "6"  -> { handleListaOffer(); yield true; }
+            case "7"  -> { handleListaRequest(); yield true; }
+            case "8"  -> { handleProponiExchange(); yield true; }
+            case "9"  -> { handleAccettaExchange(); yield true; }
+            case "10" -> { handleCompletaExchange(); yield true; }
+            case "11" -> { handleCancellaExchange(); yield true; }
+            case "12" -> { handleListaExchange(); yield true; }
+            case "13" -> { handleAggiungiRecensione(); yield true; }
+            case "14" -> { handleListaRecensioni(); yield true; }
+            case "15" -> { handleProfiloStudente(); yield true; }
+            case "16" -> { handleDettaglioExchange(); yield true; }
+            case "17" -> { handleLeaderboard(); yield true; }
+            case "18" -> { handleMatchOneWay(); yield true; }
+            case "19" -> { handleMatchSwap(); yield true; }
+            case "0"  -> { persistAndExit(); yield false; }
+            default -> { invalidChoice(); yield true; }
+        };
+    }
+
+    private void persistAndExit() {
+        storage.save(state);
+        System.out.println("Arrivederci!");
+    }
+
+    private void invalidChoice() {
+        System.out.println("Scelta non valida.");
     }
 
     private void printMenu() {
@@ -90,6 +116,8 @@ public class AppController {
         System.out.println("15. Profilo studente");
         System.out.println("16. Dettaglio exchange");
         System.out.println("17. Leaderboard");
+        System.out.println("18. Match one-way (offerte per le tue request)");
+        System.out.println("19. Match swap (scambi reciproci)");
         System.out.println("0.  Esci");
         System.out.print("Scelta: ");
     }
@@ -335,6 +363,28 @@ public class AppController {
 
     private void handleLeaderboard() {
         System.out.println(printer.printLeaderboard(state.getStudents()));
+    }
+
+    private void handleMatchOneWay() {
+        System.out.print("ID studente: ");
+        String studentId = scanner.nextLine().trim();
+        if (findStudentById(studentId) == null) {
+            System.out.println("Studente non trovato.");
+            return;
+        }
+        List<MatchResult> matches = matchingService.findOneWayMatches(studentId);
+        System.out.println(printer.printMatches(matches));
+    }
+
+    private void handleMatchSwap() {
+        System.out.print("ID studente: ");
+        String studentId = scanner.nextLine().trim();
+        if (findStudentById(studentId) == null) {
+            System.out.println("Studente non trovato.");
+            return;
+        }
+        List<MatchResult> matches = matchingService.findSwapMatches(studentId);
+        System.out.println(printer.printMatches(matches));
     }
 
     // ─── UTILITY ──────────────────────────────────────────────

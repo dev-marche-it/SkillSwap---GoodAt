@@ -1,7 +1,8 @@
 package it.skillswap.service;
 
 /**
- * Represents a match between an Offer and a Request with quality metrics.
+ * Risultato di abbinamento: id di un'{@link it.skillswap.domain.Offer} e di una {@link it.skillswap.domain.Request},
+ * con punteggio e motivazione prodotti da {@link MatchingService}.
  */
 public class MatchResult {
     private final String offerId;
@@ -10,12 +11,10 @@ public class MatchResult {
     private final String reason;
 
     /**
-     * Constructs a MatchResult with the specified details.
-     *
-     * @param offerId   ID of the matched offer
-     * @param requestId ID of the matched request
-     * @param score     quality score of the match (0-6)
-     * @param reason    explanation of why this is a good match
+     * @param offerId   id dell'offerta abbinata
+     * @param requestId id della richiesta abbinata
+     * @param score     punteggio di qualità del match (es. 0–6 per one-way)
+     * @param reason    spiegazione testuale del punteggio
      */
     public MatchResult(String offerId, String requestId, int score, String reason) {
         this.offerId = offerId;
@@ -24,28 +23,16 @@ public class MatchResult {
         this.reason = reason;
     }
 
-    /**
-     * Gets the offer ID from this match.
-     * @return the offer ID
-     */
+    /** @return id dell'offerta */
     public String getOfferId() { return offerId; }
-    
-    /**
-     * Gets the request ID from this match.
-     * @return the request ID
-     */
+
+    /** @return id della richiesta */
     public String getRequestId() { return requestId; }
-    
-    /**
-     * Gets the quality score of this match.
-     * @return the score
-     */
+
+    /** @return punteggio di qualità */
     public int getScore() { return score; }
-    
-    /**
-     * Gets the reason for this match.
-     * @return the reason string
-     */
+
+    /** @return motivazione del match */
     public String getReason() { return reason; }
 
     @Override

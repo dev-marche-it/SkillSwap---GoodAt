@@ -1,8 +1,8 @@
 package it.skillswap.domain;
 
 /**
- * Represents a student participating in the SkillSwap platform.
- * Each student has immutable personal information and mutable rating metrics.
+ * Studente iscritto alla piattaforma SkillSwap.
+ * Dati anagrafici immutabili e metriche di valutazione aggiornabili (media e conteggio).
  */
 public class Student {
     private final String studentId;
@@ -13,12 +13,12 @@ public class Student {
     private int ratingCount;
 
     /**
-     * Constructs a Student with the specified details.
+     * Costruisce uno studente con i dati indicati.
      *
-     * @param studentId unique identifier for the student
-     * @param name      full name of the student
-     * @param className class or cohort name
-     * @param email     email address for notifications
+     * @param studentId identificativo univoco dello studente
+     * @param name      nome completo
+     * @param className classe o cohort
+     * @param email     indirizzo email
      */
     public Student(String studentId, String name, String className, String email) {
         this.studentId = studentId;
@@ -30,9 +30,9 @@ public class Student {
     }
 
     /**
-     * Adds a rating to the student's profile and updates the average.
+     * Aggiunge una valutazione al profilo e ricalcola la media.
      *
-     * @param stars rating value (1-5)
+     * @param stars voto da 1 a 5
      */
     public void addRating(int stars) {
         ratingAvg = ((ratingAvg * ratingCount) + stars) / (ratingCount + 1);
@@ -40,34 +40,33 @@ public class Student {
     }
 
     /**
-     * Gets the student's unique identifier.
-     * @return the student ID
+     * @return identificativo univoco dello studente
      */
     public String getStudentId() { return studentId; }
-    
+
     /**
-     * Gets the student's name.
-     * @return the student name
+     * @return nome dello studente
      */
     public String getName() { return name; }
-    
+
     /**
-     * Gets the student's class name.
-     * @return the class name
+     * @return nome della classe
      */
     public String getClassName() { return className; }
-    
+
     /**
-     * Gets the student's email address.
-     * @return the email address
+     * @return indirizzo email
      */
     public String getEmail() { return email; }
-    
+
     /**
-     * Gets the student's average rating.
-     * @return average rating value
+     * @return media delle valutazioni ricevute
      */
     public double getRatingAvg() { return ratingAvg; }
+
+    /**
+     * @return numero di valutazioni incluse in {@link #getRatingAvg()}
+     */
     public int getRatingCount() { return ratingCount; }
 
     @Override

@@ -1,18 +1,18 @@
 package it.skillswap.service;
 
 /**
- * Encapsulates the result of a validation operation.
- * Allows for soft validation that returns success/failure with a message.
+ * Incapsula l'esito di un'operazione di validazione.
+ * Consente validazione non bloccante con messaggio descrittivo.
  */
 public class ValidationResult {
     private final boolean valid;
     private final String message;
 
     /**
-     * Constructs a ValidationResult with the specified state and message.
+     * Costruisce un risultato con stato e messaggio.
      *
-     * @param valid   true if validation passed, false otherwise
-     * @param message detailed message explaining the result
+     * @param valid   {@code true} se la validazione è passata
+     * @param message messaggio che descrive l'esito
      */
     public ValidationResult(boolean valid, String message) {
         this.valid = valid;
@@ -20,33 +20,29 @@ public class ValidationResult {
     }
 
     /**
-     * Factory method for successful validation.
-     * @return a successful ValidationResult with no message
+     * @return esito positivo senza messaggio
      */
     public static ValidationResult success() {
         return new ValidationResult(true, "");
     }
 
     /**
-     * Factory method for failed validation.
-     * @param message explanation of the validation failure
-     * @return a failed ValidationResult with the provided message
+     * @param message spiegazione del fallimento
+     * @return esito negativo con il messaggio indicato
      */
     public static ValidationResult failure(String message) {
         return new ValidationResult(false, message);
     }
 
     /**
-     * Checks if the validation passed.
-     * @return true if valid, false otherwise
+     * @return {@code true} se la validazione è passata
      */
     public boolean isValid() {
         return valid;
     }
 
     /**
-     * Gets the validation message.
-     * @return the message describing the result
+     * @return messaggio descrittivo (vuoto in caso di successo da {@link #success()})
      */
     public String getMessage() {
         return message;
