@@ -51,13 +51,24 @@ public class AppController {
      * Esegue il ciclo del menu principale finché l'utente non sceglie l'uscita (opzione {@code 0}).
      */
     public void run() {
-        System.out.println("=== SkillSwap School ===");
+        printStartupBanner();
         boolean running = true;
         while (running) {
             printMenu();
             running = handleChoice(scanner.nextLine().trim());
         }
     }
+
+   private void printStartupBanner() {
+    System.out.println("_____ __   _ _________                   ");
+    System.out.println("  / ___// /__(_) / / ___/      ______ _____ ");
+    System.out.println("  \\__ \\/ //_/ / / /\\__ \\\\ | /| / / __ `/ __ \\\\");
+    System.out.println(" ___/ / ,< / / / /___/ / |/ |/ / /_/ / /_/ /");
+    System.out.println("/____/_/|_/_/_/_//____/|__/|__/\\__,_/ .___/");
+    System.out.println("                                   /_/      ");
+    System.out.println();
+    System.out.println("=== SkillSwap School ===");
+}
 
     /**
      * @return {@code false} se l'utente ha scelto l'uscita (stato già salvato)
