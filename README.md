@@ -55,6 +55,14 @@ per eliminare boilerplate (getter/setter, costruttori, ecc.).
 - [X] Verificare il funzionamento di Lombok e Maven con `mvn clean compile`
 - [X] Minor fixes e inizio test effettivo
 - [X] Aggiustamento struttura del progetto per garantire solidità
-- [ ] Eliminazione codice superfluo per garantire "Clean code" Standard
+- [x] Eliminazione codice superfluo per garantire "Clean code" Standard
 - [x] Interfaccia WEB con backend Java (Spring Boot REST + pagina statica)
+- [ ] Ottimizzare la pagina e il funzionamento Backend
+- [ ] Migliorare il design dell'intera applicazione(Logo, Palette ecc...) Branding
+- [ ] Verificare la solidità del progetto
+- [ ] Sviluppare la presentazione per l'esposizione
+
+
+
+
 
