@@ -16,9 +16,21 @@ Il progetto è ora organizzato come classico progetto Maven:
 Per usare il progetto con Maven:
 
 - **Compilare**: `mvn clean compile`
-- **Eseguire Main**: `mvn exec:java -Dexec.mainClass=it.skillswap.app.Main`
+- **CLI console**: `mvn exec:java` (main `it.skillswap.app.Main`)
+- **Web (Spring Boot)**: `mvn spring-boot:run` → browser su [http://localhost:8080](http://localhost:8080)
 
 Assicurati di avere Maven installato e visibile nel `PATH` (`mvn -v` deve funzionare).
+
+### Interfaccia web (backend Java)
+
+L’app web riusa `MatchingService`, `ExchangeService`, `ReviewService` e `FileStorage` senza duplicare la logica.
+
+- **Registrazione** e **login** con email + password (min. 6 caratteri)
+- Account demo: `alessandro@scuola.it` / `riccardo@scuola.it` — password `SkillSwap123`
+- API REST sotto `/api/...` (vedi `web/README_WEB.md`)
+- Frontend statico in `src/main/resources/static/`
+
+**Non avviare contemporaneamente** la CLI e il server web: entrambi scrivono gli stessi CSV.
 
 ## Lombok
 
@@ -32,8 +44,10 @@ Da qui in avanti puoi usare annotazioni come `@Getter`, `@Setter`, `@Data`, `@Bu
 per eliminare boilerplate (getter/setter, costruttori, ecc.).
 
 
- | __UPDATED:__ La directory __*docs*__ contiene ora tutta la documentazione del progetto. |
+ | __UPDATED:__ La directory __*docs*__ contiene tutta la documentazione del progetto. |
  | --- |
+| **Studio completo** | [`docs/GUIDA_STUDIO_COMPLETA.md`](docs/GUIDA_STUDIO_COMPLETA.md) — manuale didattico per imparare tutto il progetto |
+| **Reference tecnico** | [`docs/DOCUMENTAZIONE_COMPLETA.md`](docs/DOCUMENTAZIONE_COMPLETA.md) — architettura e implementazione |
 ## TODO
 
 - [x] Installare Maven e aggiungere dipendenza Lombok nel `pom.xml`
@@ -42,5 +56,5 @@ per eliminare boilerplate (getter/setter, costruttori, ecc.).
 - [X] Minor fixes e inizio test effettivo
 - [X] Aggiustamento struttura del progetto per garantire solidità
 - [ ] Eliminazione codice superfluo per garantire "Clean code" Standard
-- [ ] Inizio sviluppo progettuale dell'interfaccia WEB ( CON ALTRE BRANCH E NUOVO CODICE IN CARTELLA WEB)
+- [x] Interfaccia WEB con backend Java (Spring Boot REST + pagina statica)
 

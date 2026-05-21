@@ -44,11 +44,22 @@ public class FileStorage implements Storage {
         Map<String, Request> requestMap = new HashMap<>();
         Map<String, Exchange> exchangeMap = new HashMap<>();
 
-        // 1. Carica studenti
+        // 1. Carica studenti (id;nome;classe;email;rating_avg;rating_count;password_hash)
         for (String line : readLines("students.csv")) {
-            String[] p = line.split(";");
+            String[] p = line.split(";", -1);
             if (p.length < 4) continue;
-            Student s = new Student(p[0], p[1], p[2], p[3]);
+            double ratingAvg = 0.0;
+            int ratingCount = 0;
+            if (p.length >= 6) {
+                try {
+                    ratingAvg = Double.parseDouble(p[4]);
+                    ratingCount = Integer.parseInt(p[5]);
+                } catch (NumberFormatException ignored) {
+                    // mantieni default 0
+                }
+            }
+            String passwordHash = p.length >= 7 ? p[6] : "";
+            Student s = Student.fromPersistence(p[0], p[1], p[2], p[3], ratingAvg, ratingCount, passwordHash);
             studentMap.put(p[0], s);
             state.getStudents().add(s);
         }
@@ -143,7 +154,8 @@ public class FileStorage implements Storage {
               .append(s.getClassName()).append(";")
               .append(s.getEmail()).append(";")
               .append(String.format("%.1f", s.getRatingAvg())).append(";")
-              .append(s.getRatingCount()).append("\n");
+              .append(s.getRatingCount()).append(";")
+              .append(s.getPasswordHash()).append("\n");
         }
         writeFile("students.csv", sb.toString());
     }

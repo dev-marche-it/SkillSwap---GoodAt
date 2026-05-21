@@ -13,6 +13,7 @@ import it.skillswap.domain.SkillLevel;
 import it.skillswap.domain.SkillSwapState;
 import it.skillswap.domain.Student;
 import it.skillswap.domain.exception.SkillSwapException;
+import it.skillswap.service.AuthService;
 import it.skillswap.service.ConsoleReportPrinter;
 import it.skillswap.service.ExchangeService;
 import it.skillswap.service.MatchResult;
@@ -130,11 +131,14 @@ public class AppController {
         String className = scanner.nextLine().trim();
         System.out.print("Email: ");
         String email = scanner.nextLine().trim();
-        String id = "S" + (state.getStudents().size() + 1);
-
-        Student s = new Student(id, name, className, email);
-        state.getStudents().add(s);
-        System.out.println("Studente aggiunto: " + s);
+        System.out.print("Password (min 6 caratteri): ");
+        String password = scanner.nextLine().trim();
+        try {
+            Student s = new AuthService(state).register(name, className, email, password);
+            System.out.println("Studente registrato: " + s);
+        } catch (IllegalArgumentException ex) {
+            System.out.println("Errore: " + ex.getMessage());
+        }
     }
 
     private void handleListaStudenti() {

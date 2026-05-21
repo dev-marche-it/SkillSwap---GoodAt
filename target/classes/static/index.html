@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkillSwap School</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <!-- Login -->
+  <div id="view-login" class="login-screen">
+    <div class="login-brand">
+      <div class="login-brand-inner">
+        <div class="logo-mark" aria-hidden="true">SS</div>
+        <h1>SkillSwap School</h1>
+        <p>Scambia competenze con i tuoi compagni. Insegna ciò che sai, impara ciò che ti serve.</p>
+        <ul class="login-features">
+          <li>Trova match intelligenti</li>
+          <li>Gestisci scambi in pochi click</li>
+          <li>Costruisci la tua reputazione</li>
+        </ul>
+      </div>
+    </div>
+    <div class="login-panel">
+      <div class="login-card">
+        <div class="auth-tabs" role="tablist">
+          <button type="button" class="auth-tab active" data-auth-tab="login" role="tab">Accedi</button>
+          <button type="button" class="auth-tab" data-auth-tab="register" role="tab">Registrati</button>
+        </div>
+
+        <div id="auth-panel-login">
+          <h2>Bentornato</h2>
+          <p class="subtitle">Inserisci le tue credenziali</p>
+          <div id="login-error" class="alert alert-error hidden" role="alert"></div>
+          <form id="form-login" class="form-stack">
+            <label class="field">
+              <span>Email</span>
+              <input type="email" id="login-email" placeholder="nome.cognome@scuola.it" required autocomplete="email">
+            </label>
+            <label class="field">
+              <span>Password</span>
+              <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password" minlength="6">
+            </label>
+            <button type="submit" class="btn btn-primary btn-block">Accedi</button>
+          </form>
+          <p class="demo-hint">
+            Demo: <button type="button" class="text-btn" data-demo-email="alessandro@scuola.it">Alessandro</button> ·
+            <button type="button" class="text-btn" data-demo-email="riccardo@scuola.it">Riccardo</button>
+            — password: <code>SkillSwap123</code>
+          </p>
+        </div>
+
+        <div id="auth-panel-register" class="hidden">
+          <h2>Crea account</h2>
+          <p class="subtitle">Registrati per offrire e richiedere competenze</p>
+          <div id="register-error" class="alert alert-error hidden" role="alert"></div>
+          <form id="form-register" class="form-stack">
+            <label class="field">
+              <span>Nome e cognome</span>
+              <input type="text" id="reg-name" placeholder="Mario Rossi" required autocomplete="name">
+            </label>
+            <label class="field">
+              <span>Classe</span>
+              <input type="text" id="reg-class" placeholder="4A" required>
+            </label>
+            <label class="field">
+              <span>Email scolastica</span>
+              <input type="email" id="reg-email" placeholder="mario.rossi@scuola.it" required autocomplete="email">
+            </label>
+            <label class="field">
+              <span>Password (min. 6 caratteri)</span>
+              <input type="password" id="reg-password" placeholder="••••••••" required minlength="6" autocomplete="new-password">
+            </label>
+            <label class="field">
+              <span>Conferma password</span>
+              <input type="password" id="reg-password-confirm" placeholder="••••••••" required minlength="6" autocomplete="new-password">
+            </label>
+            <button type="submit" class="btn btn-primary btn-block">Crea account e accedi</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div id="view-app" class="app-shell hidden">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-mark sm">SS</div>
+        <span class="sidebar-title">SkillSwap</span>
+        <button type="button" class="sidebar-close" id="sidebar-close" aria-label="Chiudi menu">×</button>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-page="dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1h-5v-7H9v7H4a1 1 0 01-1-1V9.5z"/></svg>
+          Home
+        </a>
+        <a href="#" class="nav-item" data-page="matches">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 11c1.66 0 3-1.34 3-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V20h14v-3.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 2.05 1.97 3.45V20h6v-3.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+          Trova match
+        </a>
+        <a href="#" class="nav-item" data-page="exchanges">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/></svg>
+          I miei scambi
+          <span class="nav-badge hidden" id="badge-exchanges">0</span>
+        </a>
+        <a href="#" class="nav-item" data-page="catalog">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6.5V19M6.5 12H19M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"/></svg>
+          Pubblica skill
+        </a>
+        <a href="#" class="nav-item" data-page="ranking">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21V10M12 21V3M16 21v-6"/></svg>
+          Classifica
+        </a>
+      </nav>
+      <div class="sidebar-user">
+        <div class="avatar" id="user-avatar">?</div>
+        <div class="sidebar-user-info">
+          <strong id="user-name">—</strong>
+          <span id="user-class">—</span>
+        </div>
+        <button type="button" class="btn-icon" id="btn-logout" title="Esci">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        </button>
+      </div>
+    </aside>
+    <div class="sidebar-backdrop hidden" id="sidebar-backdrop"></div>
+
+    <div class="main-area">
+      <header class="topbar">
+        <button type="button" class="btn-icon menu-toggle" id="menu-toggle" aria-label="Menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="topbar-titles">
+          <h1 id="page-title">Home</h1>
+          <p id="page-subtitle" class="topbar-sub">Panoramica del tuo profilo</p>
+        </div>
+      </header>
+
+      <main class="content">
+        <!-- Dashboard -->
+        <section id="page-dashboard" class="page">
+          <div class="hero-card">
+            <div class="hero-text">
+              <p class="hero-greeting">Bentornato 👋</p>
+              <h2 id="welcome-title">—</h2>
+              <p id="welcome-meta" class="hero-meta"></p>
+            </div>
+            <div class="hero-rating" id="hero-rating">
+              <span class="rating-big">0.0</span>
+              <span class="rating-label">★ media recensioni</span>
+            </div>
+          </div>
+          <div class="stat-grid" id="dashboard-stats">
+            <div class="stat-card skeleton"></div>
+            <div class="stat-card skeleton"></div>
+            <div class="stat-card skeleton"></div>
+          </div>
+          <h3 class="section-label">Cosa vuoi fare?</h3>
+          <div class="action-grid">
+            <button type="button" class="action-card" data-goto="matches">
+              <span class="action-icon teal">🔍</span>
+              <strong>Cerca un match</strong>
+              <span>Trova chi può aiutarti o uno scambio reciproco</span>
+            </button>
+            <button type="button" class="action-card" data-goto="exchanges">
+              <span class="action-icon blue">🔄</span>
+              <strong>Gestisci scambi</strong>
+              <span>Accetta, completa o lascia una recensione</span>
+            </button>
+            <button type="button" class="action-card" data-goto="catalog">
+              <span class="action-icon amber">➕</span>
+              <strong>Pubblica skill</strong>
+              <span>Offri ciò che sai o chiedi aiuto</span>
+            </button>
+            <button type="button" class="action-card" data-goto="ranking">
+              <span class="action-icon purple">🏆</span>
+              <strong>Vedi classifica</strong>
+              <span>Scopri i migliori tutor della scuola</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- Matches -->
+        <section id="page-matches" class="page hidden">
+          <div class="info-banner">
+            <strong>Come funziona?</strong>
+            <span id="match-hint">One-way: altri studenti che soddisfano le tue richieste.</span>
+          </div>
+          <div class="segmented" role="tablist">
+            <button type="button" class="segmented-btn active" data-match="one-way" role="tab">Aiuto da altri</button>
+            <button type="button" class="segmented-btn" data-match="swap" role="tab">Scambio reciproco</button>
+          </div>
+          <div id="matches-list" class="card-list"></div>
+        </section>
+
+        <!-- Exchanges -->
+        <section id="page-exchanges" class="page hidden">
+          <div id="exchanges-list" class="card-list"></div>
+        </section>
+
+        <!-- Catalog -->
+        <section id="page-catalog" class="page hidden">
+          <div class="catalog-tabs segmented">
+            <button type="button" class="segmented-btn active" data-catalog="offer">Offro una competenza</button>
+            <button type="button" class="segmented-btn" data-catalog="request">Cerco aiuto</button>
+            <button type="button" class="segmented-btn" data-catalog="browse">Esplora</button>
+          </div>
+          <div id="catalog-panel-offer" class="catalog-panel">
+            <div class="card form-card">
+              <h3>Nuova offerta</h3>
+              <p class="card-desc">Indica cosa puoi insegnare e a che livello.</p>
+              <form id="form-offer" class="form-stack">
+                <label class="field">
+                  <span>Competenza</span>
+                  <select id="offer-skill" required></select>
+                </label>
+                <label class="field">
+                  <span>Il tuo livello</span>
+                  <select id="offer-level" required>
+                    <option value="BEGINNER">Principiante</option>
+                    <option value="INTERMEDIATE">Intermedio</option>
+                    <option value="ADVANCED">Avanzato</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Nota (opzionale)</span>
+                  <input type="text" id="offer-note" placeholder="Es. Ripasso per la verifica di giovedì">
+                </label>
+                <button type="submit" class="btn btn-primary">Pubblica offerta</button>
+              </form>
+            </div>
+          </div>
+          <div id="catalog-panel-request" class="catalog-panel hidden">
+            <div class="card form-card">
+              <h3>Nuova richiesta</h3>
+              <p class="card-desc">Indica su cosa hai bisogno di aiuto.</p>
+              <form id="form-request" class="form-stack">
+                <label class="field">
+                  <span>Competenza</span>
+                  <select id="request-skill" required></select>
+                </label>
+                <label class="field">
+                  <span>Livello minimo del tutor</span>
+                  <select id="request-min-level" required>
+                    <option value="BEGINNER">Principiante</option>
+                    <option value="INTERMEDIATE">Intermedio</option>
+                    <option value="ADVANCED">Avanzato</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Nota (opzionale)</span>
+                  <input type="text" id="request-note" placeholder="Es. Mi serve aiuto con le equazioni">
+                </label>
+                <button type="submit" class="btn btn-primary">Pubblica richiesta</button>
+              </form>
+            </div>
+          </div>
+          <div id="catalog-panel-browse" class="catalog-panel hidden">
+            <div class="card">
+              <h3>Offerte attive</h3>
+              <div id="catalog-offers" class="table-wrap"></div>
+            </div>
+            <div class="card">
+              <h3>Richieste degli studenti</h3>
+              <div id="catalog-requests" class="table-wrap"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Ranking -->
+        <section id="page-ranking" class="page hidden">
+          <div class="card">
+            <div id="ranking-podium" class="podium hidden"></div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr><th>#</th><th>Studente</th><th>Classe</th><th>Rating</th><th>Recensioni</th></tr>
+                </thead>
+                <tbody id="ranking-body"></tbody>
+              </table>
+            </div>
+            <div id="ranking-empty" class="empty-state hidden">
+              <div class="empty-icon">★</div>
+              <p>Nessuna recensione ancora</p>
+              <span>Completa uno scambio e lascia feedback per comparire in classifica.</span>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal recensione -->
+  <dialog id="modal-review" class="modal">
+    <form method="dialog" id="form-review" class="modal-body">
+      <h3>Lascia una recensione</h3>
+      <p class="card-desc">Valuta l’esperienza con il tuo compagno di scambio.</p>
+      <input type="hidden" id="review-exchange-id">
+      <label class="field">
+        <span>Voto</span>
+        <div class="star-picker" id="star-picker">
+          <button type="button" data-star="1">★</button>
+          <button type="button" data-star="2">★</button>
+          <button type="button" data-star="3">★</button>
+          <button type="button" data-star="4">★</button>
+          <button type="button" data-star="5">★</button>
+        </div>
+        <input type="hidden" id="review-stars" value="5" required>
+      </label>
+      <label class="field">
+        <span>Commento</span>
+        <textarea id="review-comment" rows="3" placeholder="Cosa ti è piaciuto dello scambio?"></textarea>
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="review-cancel">Annulla</button>
+        <button type="submit" class="btn btn-primary">Invia recensione</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
