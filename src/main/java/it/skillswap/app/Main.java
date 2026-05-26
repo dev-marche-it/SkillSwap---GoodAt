@@ -14,6 +14,7 @@ public class Main {
      * @param args non utilizzati
      */
     public static void main(String[] args) {
+        ConsoleBanner.print();
         Storage storage = new FileStorage();
         SkillSwapState state = storage.load();
         new AppController(state, storage).run();

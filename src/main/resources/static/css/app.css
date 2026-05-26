@@ -351,7 +351,70 @@ body {
   z-index: 50;
 }
 
-.menu-toggle { display: none; }
+.menu-toggle {
+  display: none;
+  gap: 0.35rem;
+  padding: 0.5rem 0.65rem;
+}
+
+.menu-toggle-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.tab-context-hint {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  background: var(--bg-muted, #f1f5f9);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm, 8px);
+  padding: 0.65rem 0.85rem;
+  margin: 0 0 1rem;
+  line-height: 1.45;
+}
+
+.tab-context-hint strong {
+  color: var(--text);
+}
+
+.match-card.is-history {
+  opacity: 0.92;
+  border-style: dashed;
+}
+
+.match-card.is-history .tag.muted {
+  background: #f1f5f9;
+  color: var(--text-muted);
+}
+
+.section-label.with-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.section-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+  background: #e2e8f0;
+  color: var(--text-muted);
+}
+
+.section-badge.live {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.section-badge.archive {
+  background: #fef3c7;
+  color: #92400e;
+}
 
 .topbar-titles h1 {
   font-size: 1.35rem;

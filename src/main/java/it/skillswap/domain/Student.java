@@ -38,6 +38,11 @@ public class Student {
     /** @return hash SHA-256 della password (mai esporre via API pubbliche) */
     public String getPasswordHash() { return passwordHash; }
 
+    /** Imposta hash password (registrazione o migrazione CSV legacy). */
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash != null ? passwordHash : "";
+    }
+
     /**
      * Ricostruisce uno studente da riga CSV (uso {@link it.skillswap.storage.FileStorage}).
      */

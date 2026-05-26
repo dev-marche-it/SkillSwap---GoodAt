@@ -59,7 +59,7 @@ per eliminare boilerplate (getter/setter, costruttori, ecc.).
 - [x] Interfaccia WEB con backend Java (Spring Boot REST + pagina statica)
 - [ ] Ottimizzare la pagina e il funzionamento Backend
 - [ ] Migliorare il design dell'intera applicazione(Logo, Palette ecc...) Branding
-- [ ] Verificare la solidità del progetto
+- [x] Verificare la solidità del progetto (bacheca multi-utente, API con validazione ruoli, anti-duplicati scambi)
 - [ ] Sviluppare la presentazione per l'esposizione
 
 

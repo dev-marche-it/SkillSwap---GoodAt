@@ -24,7 +24,7 @@ public class ReviewController {
     @PostMapping
     public ReviewDto create(@RequestBody Map<String, Object> body) {
         String exchangeId = string(body, "exchangeId");
-        String reviewerStudentId = string(body, "reviewerStudentId");
+        String reviewerStudentId = stringAny(body, "reviewerStudentId", "studentId");
         int stars = number(body, "stars");
         String comment = body.getOrDefault("comment", "").toString();
         String reviewId = body.containsKey("reviewId") && body.get("reviewId") != null
@@ -52,8 +52,22 @@ public class ReviewController {
             return n.intValue();
         }
         if (v != null) {
-            return Integer.parseInt(v.toString());
+            try {
+                return Integer.parseInt(v.toString().trim());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("Voto non valido: usa un numero da 1 a 5");
+            }
         }
         throw new IllegalArgumentException("Campo obbligatorio: " + key);
+    }
+
+    private static String stringAny(Map<String, Object> body, String... keys) {
+        for (String key : keys) {
+            Object v = body.get(key);
+            if (v != null && !v.toString().trim().isEmpty()) {
+                return v.toString().trim();
+            }
+        }
+        throw new IllegalArgumentException("Campo obbligatorio: " + keys[0]);
     }
 }

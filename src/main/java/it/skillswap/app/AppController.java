@@ -262,8 +262,10 @@ public class AppController {
     private void handleAccettaExchange() {
         System.out.print("ID exchange: ");
         String id = scanner.nextLine().trim();
+        System.out.print("ID studente che accetta (proprietario offerta): ");
+        String studentId = scanner.nextLine().trim();
         try {
-            Exchange e = exchangeService.accept(id);
+            Exchange e = exchangeService.accept(id, studentId);
             System.out.println("Exchange accettato: " + e);
         } catch (SkillSwapException ex) {
             System.out.println("Errore di dominio: " + ex.getMessage());
@@ -275,8 +277,10 @@ public class AppController {
     private void handleCompletaExchange() {
         System.out.print("ID exchange: ");
         String id = scanner.nextLine().trim();
+        System.out.print("ID studente partecipante: ");
+        String studentId = scanner.nextLine().trim();
         try {
-            Exchange e = exchangeService.complete(id);
+            Exchange e = exchangeService.complete(id, studentId);
             System.out.println("Exchange completato: " + e);
         } catch (SkillSwapException ex) {
             System.out.println("Errore di dominio: " + ex.getMessage());
@@ -288,8 +292,10 @@ public class AppController {
     private void handleCancellaExchange() {
         System.out.print("ID exchange: ");
         String id = scanner.nextLine().trim();
+        System.out.print("ID studente partecipante: ");
+        String studentId = scanner.nextLine().trim();
         try {
-            Exchange e = exchangeService.cancel(id);
+            Exchange e = exchangeService.cancel(id, studentId);
             System.out.println("Exchange cancellato: " + e);
         } catch (SkillSwapException ex) {
             System.out.println("Errore di dominio: " + ex.getMessage());

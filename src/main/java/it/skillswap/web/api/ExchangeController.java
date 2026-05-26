@@ -28,17 +28,24 @@ public class ExchangeController {
     }
 
     @GetMapping
-    public List<ExchangeDto> list(@RequestParam(required = false) String studentId) {
+    public List<ExchangeDto> list(
+            @RequestParam String studentId,
+            @RequestParam(required = false, defaultValue = "false") boolean all) {
+        if (studentId == null || studentId.isBlank()) {
+            throw new IllegalArgumentException("studentId obbligatorio");
+        }
         return app.getState().getExchanges().stream()
-                .filter(e -> studentId == null || involvesStudent(e, studentId))
-                .map(ExchangeDto::from)
+                .filter(e -> all || involvesStudent(e, studentId))
+                .map(e -> ExchangeDto.from(e, studentId, app.getState()))
                 .toList();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ExchangeDto> get(@PathVariable String id) {
+    public ResponseEntity<ExchangeDto> get(
+            @PathVariable String id,
+            @RequestParam String studentId) {
         return findExchange(id)
-                .map(ExchangeDto::from)
+                .map(e -> ExchangeDto.from(e, studentId, app.getState()))
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
@@ -47,33 +54,42 @@ public class ExchangeController {
     public ExchangeDto propose(@RequestBody Map<String, String> body) {
         String offerId = required(body, "offerId");
         String requestId = required(body, "requestId");
+        String requesterId = requiredAny(body, "requesterStudentId", "studentId");
         String exchangeId = body.containsKey("exchangeId") && !body.get("exchangeId").isBlank()
                 ? body.get("exchangeId").trim()
                 : IdGenerator.nextExchangeId(app.getState());
+
         Exchange exchange = app.getExchangeService().propose(exchangeId, offerId, requestId);
+        if (!exchange.getRequest().getStudent().getStudentId().equals(requesterId)) {
+            throw new IllegalStateException(
+                    "Puoi proporre uno scambio solo sulle tue richieste di competenza.");
+        }
         app.persist();
-        return ExchangeDto.from(exchange);
+        return ExchangeDto.from(exchange, requesterId, app.getState());
     }
 
     @PutMapping("/{id}/accept")
-    public ExchangeDto accept(@PathVariable String id) {
-        Exchange exchange = app.getExchangeService().accept(id);
+    public ExchangeDto accept(@PathVariable String id, @RequestBody Map<String, String> body) {
+        String studentId = required(body, "studentId");
+        Exchange exchange = app.getExchangeService().accept(id, studentId);
         app.persist();
-        return ExchangeDto.from(exchange);
+        return ExchangeDto.from(exchange, studentId, app.getState());
     }
 
     @PutMapping("/{id}/complete")
-    public ExchangeDto complete(@PathVariable String id) {
-        Exchange exchange = app.getExchangeService().complete(id);
+    public ExchangeDto complete(@PathVariable String id, @RequestBody Map<String, String> body) {
+        String studentId = required(body, "studentId");
+        Exchange exchange = app.getExchangeService().complete(id, studentId);
         app.persist();
-        return ExchangeDto.from(exchange);
+        return ExchangeDto.from(exchange, studentId, app.getState());
     }
 
     @PutMapping("/{id}/cancel")
-    public ExchangeDto cancel(@PathVariable String id) {
-        Exchange exchange = app.getExchangeService().cancel(id);
+    public ExchangeDto cancel(@PathVariable String id, @RequestBody Map<String, String> body) {
+        String studentId = required(body, "studentId");
+        Exchange exchange = app.getExchangeService().cancel(id, studentId);
         app.persist();
-        return ExchangeDto.from(exchange);
+        return ExchangeDto.from(exchange, studentId, app.getState());
     }
 
     private boolean involvesStudent(Exchange e, String studentId) {
@@ -93,5 +109,15 @@ public class ExchangeController {
             throw new IllegalArgumentException("Campo obbligatorio: " + key);
         }
         return v;
+    }
+
+    private static String requiredAny(Map<String, String> body, String... keys) {
+        for (String key : keys) {
+            String v = body.getOrDefault(key, "").trim();
+            if (!v.isEmpty()) {
+                return v;
+            }
+        }
+        throw new IllegalArgumentException("Campo obbligatorio: " + keys[0]);
     }
 }

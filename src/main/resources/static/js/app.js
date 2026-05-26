@@ -2,6 +2,7 @@ const SESSION_KEY = "skillswap_student";
 
 const PAGE_META = {
   dashboard: { title: "Home", subtitle: "Panoramica del tuo profilo" },
+  community: { title: "Bacheca", subtitle: "Offerte e richieste di tutti gli studenti" },
   matches: { title: "Trova match", subtitle: "Studenti compatibili con le tue richieste" },
   exchanges: { title: "I miei scambi", subtitle: "Proposte, scambi in corso e completati" },
   catalog: { title: "Pubblica skill", subtitle: "Offri competenze o chiedi aiuto" },
@@ -23,24 +24,42 @@ const LEVEL_LABEL = {
 
 let currentStudent = null;
 let matchMode = "one-way";
-let catalogTab = "offer";
+let catalogTab = "browse";
+let communityTab = "offers";
 let selectedStars = 5;
 let offersCache = [];
 let requestsCache = [];
+let communityData = null;
 
 // ─── Session & navigation ───────────────────────────────────
+
+/** Normalizza sessioni salvate con formati vecchi (es. `id` invece di `studentId`). */
+function normalizeStudent(student) {
+  if (!student) return null;
+  const sid = student.studentId || student.id || student.student_id;
+  if (!sid) return student;
+  return { ...student, studentId: sid };
+}
+
+function getStudentId() {
+  const sid = currentStudent?.studentId || currentStudent?.id;
+  if (!sid) {
+    throw new Error("Sessione non valida. Esci e accedi di nuovo.");
+  }
+  return sid;
+}
 
 function loadSession() {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
-    return raw ? JSON.parse(raw) : null;
+    return raw ? normalizeStudent(JSON.parse(raw)) : null;
   } catch {
     return null;
   }
 }
 
 function saveSession(student) {
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(student));
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(normalizeStudent(student)));
 }
 
 function clearSession() {
@@ -74,6 +93,7 @@ function showPage(name) {
   closeSidebar();
 
   if (name === "dashboard") renderDashboard();
+  if (name === "community") renderCommunity();
   if (name === "matches") renderMatches();
   if (name === "exchanges") renderExchanges();
   if (name === "catalog") renderCatalog();
@@ -148,9 +168,16 @@ function levelLabel(level) {
 
 async function refreshCaches() {
   [offersCache, requestsCache] = await Promise.all([
-    API.offers("?active=true"),
+    API.offers(""),
     API.requests(),
   ]);
+}
+
+async function loadCommunity() {
+  communityData = await API.community(getStudentId());
+  offersCache = communityData.activeOffers.concat(communityData.myOffers);
+  requestsCache = communityData.openRequests.concat(communityData.myRequests);
+  return communityData;
 }
 
 function lookupOffer(id) {
@@ -176,9 +203,9 @@ async function renderDashboard() {
   try {
     await refreshCaches();
     const [oneWay, swaps, exchanges] = await Promise.all([
-      API.oneWayMatches(currentStudent.studentId),
-      API.swapMatches(currentStudent.studentId),
-      API.exchanges(currentStudent.studentId),
+      API.oneWayMatches(getStudentId()),
+      API.swapMatches(getStudentId()),
+      API.exchanges(getStudentId()),
     ]);
     const pending = exchanges.filter((e) => e.status === "PROPOSED" || e.status === "ACCEPTED").length;
 
@@ -203,6 +230,14 @@ async function renderDashboard() {
     } else {
       badge.classList.add("hidden");
     }
+
+    await loadCommunity();
+    const preview = document.getElementById("dashboard-community");
+    const topOffers = communityData.activeOffers.slice(0, 3);
+    preview.innerHTML = topOffers.length
+      ? topOffers.map((o) => renderOfferCard(o, communityData.myRequests, false)).join("")
+      : emptyState("👥", "Bacheca vuota", "Sii il primo a pubblicare un'offerta o una richiesta!");
+    bindCommunityActions(preview);
   } catch (e) {
     statsEl.innerHTML = `<p class="alert alert-error">${escapeHtml(e.message)}</p>`;
   }
@@ -224,8 +259,8 @@ async function renderMatches() {
     await refreshCaches();
     const list =
       matchMode === "swap"
-        ? await API.swapMatches(currentStudent.studentId)
-        : await API.oneWayMatches(currentStudent.studentId);
+        ? await API.swapMatches(getStudentId())
+        : await API.oneWayMatches(getStudentId());
 
     if (!list.length) {
       box.innerHTML = emptyState(
@@ -258,18 +293,18 @@ async function renderMatches() {
               <span class="score-badge">${m.score} pt</span>
             </div>
             <div class="reason-tags">${parseReasonTags(m.reason)}</div>
-            <button type="button" class="btn btn-primary btn-sm" data-propose="${m.offerId}" data-request="${m.requestId}">
+            <button type="button" class="btn btn-primary btn-sm" data-propose-offer="${m.offerId}" data-propose-request="${m.requestId}">
               Proponi scambio
             </button>
           </article>`;
       })
       .join("");
 
-    box.querySelectorAll("[data-propose]").forEach((btn) => {
+    box.querySelectorAll("[data-propose-offer]").forEach((btn) => {
       btn.addEventListener("click", async () => {
         btn.disabled = true;
         try {
-          await API.proposeExchange(btn.dataset.propose, btn.dataset.request);
+          await API.proposeExchange(btn.dataset.proposeOffer, btn.dataset.proposeRequest, getStudentId());
           toast("Scambio proposto con successo!", "success");
           showPage("exchanges");
         } catch (e) {
@@ -290,7 +325,7 @@ async function renderExchanges() {
   box.innerHTML = loadingCards(2);
 
   try {
-    const list = await API.exchanges(currentStudent.studentId);
+    const list = await API.exchanges(getStudentId());
 
     if (!list.length) {
       box.innerHTML = emptyState(
@@ -313,16 +348,27 @@ function renderExchangeCard(e) {
   const st = STATUS_LABEL[e.status] || { label: e.status, class: "proposed" };
   const actions = [];
 
-  if (e.status === "PROPOSED") {
-    actions.push(`<button class="btn btn-primary btn-sm" data-accept="${e.exchangeId}">Accetta</button>`);
+  if (e.canAccept) {
+    actions.push(`<button class="btn btn-primary btn-sm" data-accept="${e.exchangeId}">Accetta proposta</button>`);
+  }
+  if (e.canCancel) {
     actions.push(`<button class="btn btn-danger btn-sm" data-cancel="${e.exchangeId}">Annulla</button>`);
   }
-  if (e.status === "ACCEPTED") {
+  if (e.canComplete) {
     actions.push(`<button class="btn btn-primary btn-sm" data-complete="${e.exchangeId}">Segna completato</button>`);
   }
-  if (e.status === "COMPLETED") {
+  if (e.canReview) {
     actions.push(`<button class="btn btn-secondary btn-sm" data-review="${e.exchangeId}">Lascia recensione</button>`);
+  } else if (e.status === "COMPLETED") {
+    actions.push(`<span class="card-desc">Hai già lasciato una recensione per questo scambio.</span>`);
   }
+
+  const roleHint =
+    e.status === "PROPOSED" && e.canAccept
+      ? `<p class="card-desc">Sei il tutor (${escapeHtml(e.offerStudentName)}): puoi accettare questa proposta.</p>`
+      : e.status === "PROPOSED"
+        ? `<p class="card-desc">In attesa che <strong>${escapeHtml(e.offerStudentName)}</strong> accetti la tua proposta.</p>`
+        : "";
 
   return `
     <article class="exchange-card">
@@ -330,11 +376,12 @@ function renderExchangeCard(e) {
         <strong>${escapeHtml(e.exchangeId)}</strong>
         <span class="status-pill ${st.class}">${st.label}</span>
       </div>
+      ${roleHint}
       <div class="exchange-lines">
-        <div>📤 ${escapeHtml(e.offerSummary)}</div>
-        <div>📥 ${escapeHtml(e.requestSummary)}</div>
+        <div>📤 <strong>${escapeHtml(e.offerStudentName)}</strong> offre: ${escapeHtml(e.offerSkillName)}</div>
+        <div>📥 <strong>${escapeHtml(e.requestStudentName)}</strong> cerca: ${escapeHtml(e.requestSkillName)}</div>
       </div>
-      <div class="card-actions">${actions.join("")}</div>
+      <div class="card-actions">${actions.join("") || '<span class="card-desc">Nessuna azione disponibile per te in questo stato.</span>'}</div>
     </article>`;
 }
 
@@ -362,9 +409,10 @@ function updateExchangeBadge(list) {
 
 async function exchangeAction(id, action) {
   try {
-    if (action === "accept") await API.acceptExchange(id);
-    if (action === "cancel") await API.cancelExchange(id);
-    if (action === "complete") await API.completeExchange(id);
+    const sid = getStudentId();
+    if (action === "accept") await API.acceptExchange(id, sid);
+    if (action === "cancel") await API.cancelExchange(id, sid);
+    if (action === "complete") await API.completeExchange(id, sid);
     const labels = { accept: "Scambio accettato", cancel: "Scambio annullato", complete: "Scambio completato" };
     toast(labels[action], "success");
     renderExchanges();
@@ -399,6 +447,189 @@ function setupStarPicker() {
   });
 }
 
+// ─── Community ─────────────────────────────────────────────
+
+function renderOfferCard(offer, myRequests, compact = false) {
+  const matching = myRequests.filter((r) => r.skillId === offer.skillId);
+  const proposeBlock =
+    matching.length === 1
+      ? `<button type="button" class="btn btn-primary btn-sm" data-community-propose data-offer-id="${offer.offerId}" data-request-id="${matching[0].requestId}">Proponi scambio</button>`
+      : matching.length > 1
+        ? `<label class="field" style="margin-top:0.75rem"><span>La tua richiesta su ${escapeHtml(offer.skillName)}</span>
+           <select class="community-request-pick" data-offer-id="${offer.offerId}">
+             ${matching.map((r) => `<option value="${r.requestId}">${escapeHtml(r.requestId)} — min ${levelLabel(r.minLevel)}</option>`).join("")}
+           </select></label>
+           <button type="button" class="btn btn-primary btn-sm" data-community-propose-select data-offer-id="${offer.offerId}">Proponi scambio</button>`
+        : `<div class="card-actions" style="margin-top:0.75rem">
+             <span class="card-desc">Per proporre uno scambio, pubblica prima una richiesta su «${escapeHtml(offer.skillName)}».</span>
+             <button type="button" class="btn btn-secondary btn-sm" data-goto-request data-skill-id="${offer.skillId}">Pubblica richiesta</button>
+           </div>`;
+
+  return `
+    <article class="match-card">
+      <div class="match-card-header">
+        <div>
+          <div class="match-title">${escapeHtml(offer.skillName)}</div>
+          <div class="match-meta">Offerta di <strong>${escapeHtml(offer.studentName)}</strong> · ${levelLabel(offer.level)}${offer.note ? ` · ${escapeHtml(offer.note)}` : ""}</div>
+        </div>
+        ${offer.active ? '<span class="tag positive">Attiva</span>' : '<span class="tag">Non attiva</span>'}
+      </div>
+      ${compact ? "" : proposeBlock}
+    </article>`;
+}
+
+function renderRequestCard(req) {
+  return `
+    <article class="match-card">
+      <div class="match-title">${escapeHtml(req.skillName)}</div>
+      <div class="match-meta">Richiesta di <strong>${escapeHtml(req.studentName)}</strong> · min ${levelLabel(req.minLevel)}${req.note ? ` · ${escapeHtml(req.note)}` : ""}</div>
+    </article>`;
+}
+
+const COMMUNITY_TAB_HINTS = {
+  offers:
+    "📌 <strong>In tempo reale:</strong> solo offerte <em>attive</em> pubblicate da altri studenti. Quelle concluse o disattivate non compaiono qui.",
+  requests:
+    "📌 <strong>In tempo reale:</strong> richieste <em>aperte</em> degli altri studenti. Non è lo storico: sono annunci ancora validi.",
+  mine:
+    "🗂️ <strong>Il tuo archivio:</strong> tutte le offerte e richieste che hai pubblicato, <em>attive e passate</em> (anche concluse dopo uno scambio).",
+};
+
+function setCommunityTabHint(tab) {
+  const el = document.getElementById("community-tab-hint");
+  if (el) el.innerHTML = COMMUNITY_TAB_HINTS[tab] || "";
+}
+
+function renderMyOfferCard(offer) {
+  const isPast = !offer.active;
+  return `
+    <article class="match-card ${isPast ? "is-history" : ""}">
+      <div class="match-card-header">
+        <div>
+          <div class="match-title">${escapeHtml(offer.skillName)}</div>
+          <div class="match-meta">${levelLabel(offer.level)}${offer.note ? ` · ${escapeHtml(offer.note)}` : ""}</div>
+        </div>
+        ${offer.active
+          ? '<span class="tag positive">Pubblicata · attiva</span>'
+          : '<span class="tag muted">Pubblicata · passata / conclusa</span>'}
+      </div>
+    </article>`;
+}
+
+function renderMyRequestCard(req) {
+  return `
+    <article class="match-card is-history">
+      <div class="match-card-header">
+        <div>
+          <div class="match-title">${escapeHtml(req.skillName)}</div>
+          <div class="match-meta">min ${levelLabel(req.minLevel)}${req.note ? ` · ${escapeHtml(req.note)}` : ""}</div>
+        </div>
+        <span class="tag muted">Richiesta pubblicata</span>
+      </div>
+    </article>`;
+}
+
+async function renderCommunity() {
+  const box = document.getElementById("community-list");
+  box.innerHTML = loadingCards(3);
+  setCommunityTabHint(communityTab);
+  try {
+    const data = await loadCommunity();
+    let items = [];
+    if (communityTab === "offers") items = data.activeOffers;
+    else if (communityTab === "requests") items = data.openRequests;
+    else {
+      const activeOffers = data.myOffers.filter((o) => o.active);
+      const pastOffers = data.myOffers.filter((o) => !o.active);
+
+      box.innerHTML =
+        `<h3 class="section-label with-badge"><span>Le tue offerte attive</span><span class="section-badge live">Oggi</span></h3>` +
+        (activeOffers.length
+          ? activeOffers.map(renderMyOfferCard).join("")
+          : emptyState("📤", "Nessuna offerta attiva", "Pubblica ciò che sai insegnare da «Pubblica skill».")) +
+        `<h3 class="section-label with-badge" style="margin-top:1.5rem"><span>Le tue offerte passate</span><span class="section-badge archive">Storico</span></h3>` +
+        (pastOffers.length
+          ? pastOffers.map(renderMyOfferCard).join("")
+          : `<p class="card-desc" style="margin:0 0 1rem">Nessuna offerta conclusa o disattivata.</p>`) +
+        `<h3 class="section-label with-badge" style="margin-top:1.5rem"><span>Le tue richieste pubblicate</span><span class="section-badge archive">Storico</span></h3>` +
+        (data.myRequests.length
+          ? data.myRequests.map(renderMyRequestCard).join("")
+          : emptyState("📥", "Nessuna richiesta", "Pubblica su cosa hai bisogno di aiuto."));
+      return;
+    }
+
+    if (!items.length) {
+      box.innerHTML = emptyState(
+        "👥",
+        "Nessun contenuto",
+        communityTab === "offers"
+          ? "Nessuna offerta attiva al momento dagli altri studenti."
+          : "Nessuna richiesta aperta al momento dagli altri studenti."
+      );
+      return;
+    }
+
+    box.innerHTML =
+      communityTab === "offers"
+        ? items.map((o) => renderOfferCard(o, data.myRequests)).join("")
+        : items.map(renderRequestCard).join("");
+    bindCommunityActions(box);
+  } catch (e) {
+    box.innerHTML = `<div class="alert alert-error">${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function bindCommunityActions(box) {
+  box.querySelectorAll("[data-community-propose]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      try {
+        await API.proposeExchange(btn.dataset.offerId, btn.dataset.requestId, getStudentId());
+        toast("Proposta inviata! Il tutor può accettare da «I miei scambi».", "success");
+        showPage("exchanges");
+      } catch (e) {
+        toast(e.message, "error");
+      }
+    });
+  });
+  box.querySelectorAll("[data-community-propose-select]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const select = box.querySelector(`select[data-offer-id="${btn.dataset.offerId}"]`);
+      if (!select?.value) return toast("Seleziona una richiesta", "error");
+      try {
+        await API.proposeExchange(btn.dataset.offerId, select.value, getStudentId());
+        toast("Proposta inviata!", "success");
+        showPage("exchanges");
+      } catch (e) {
+        toast(e.message, "error");
+      }
+    });
+  });
+  box.querySelectorAll("[data-goto-request]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      showPage("catalog");
+      await renderCatalog();
+      showCatalogPanel("request");
+      const skillSel = document.getElementById("request-skill");
+      if (btn.dataset.skillId && skillSel) {
+        skillSel.value = btn.dataset.skillId;
+      }
+      toast("Compila e pubblica la richiesta, poi torna in Bacheca.", "default");
+    });
+  });
+}
+
+/** Aggiorna bacheca, catalogo e home dopo una pubblicazione. */
+async function refreshAfterPublish() {
+  await loadCommunity();
+  renderDashboard();
+  if (!document.getElementById("page-community").classList.contains("hidden")) {
+    renderCommunity();
+  }
+  if (catalogTab === "browse") {
+    renderBrowseTables();
+  }
+}
+
 // ─── Catalog ───────────────────────────────────────────────
 
 function showCatalogPanel(tab) {
@@ -430,31 +661,19 @@ async function renderCatalog() {
 
 async function renderBrowseTables() {
   try {
-    await refreshCaches();
+    const data = await loadCommunity();
     const offersEl = document.getElementById("catalog-offers");
     const requestsEl = document.getElementById("catalog-requests");
 
-    offersEl.innerHTML = offersCache.length
-      ? `<table class="data-table"><thead><tr><th>Studente</th><th>Skill</th><th>Livello</th></tr></thead><tbody>` +
-        offersCache
-          .map(
-            (o) =>
-              `<tr><td>${escapeHtml(o.studentName)}</td><td>${escapeHtml(o.skillName)}</td><td><span class="level-chip">${levelLabel(o.level)}</span></td></tr>`
-          )
-          .join("") +
-        "</tbody></table>"
-      : emptyState("📋", "Nessuna offerta", "Sii il primo a pubblicare un’offerta!");
+    offersEl.innerHTML = data.activeOffers.length
+      ? data.activeOffers.map((o) => renderOfferCard(o, data.myRequests)).join("")
+      : emptyState("📋", "Nessuna offerta attiva", "Sii il primo a pubblicare un'offerta!");
 
-    requestsEl.innerHTML = requestsCache.length
-      ? `<table class="data-table"><thead><tr><th>Studente</th><th>Skill</th><th>Livello min.</th></tr></thead><tbody>` +
-        requestsCache
-          .map(
-            (r) =>
-              `<tr><td>${escapeHtml(r.studentName)}</td><td>${escapeHtml(r.skillName)}</td><td><span class="level-chip">${levelLabel(r.minLevel)}</span></td></tr>`
-          )
-          .join("") +
-        "</tbody></table>"
+    requestsEl.innerHTML = data.openRequests.length
+      ? data.openRequests.map(renderRequestCard).join("")
       : emptyState("📋", "Nessuna richiesta", "Pubblica la tua prima richiesta di aiuto.");
+
+    bindCommunityActions(offersEl);
   } catch (e) {
     toast(e.message, "error");
   }
@@ -536,7 +755,7 @@ document.getElementById("form-login").addEventListener("submit", async (ev) => {
   try {
     const email = document.getElementById("login-email").value.trim();
     const password = document.getElementById("login-password").value;
-    currentStudent = await API.login(email, password);
+    currentStudent = normalizeStudent(await API.login(email, password));
     saveSession(currentStudent);
     showApp();
     showPage("dashboard");
@@ -559,11 +778,13 @@ document.getElementById("form-register").addEventListener("submit", async (ev) =
     return;
   }
   try {
-    currentStudent = await API.register(
-      document.getElementById("reg-name").value.trim(),
-      document.getElementById("reg-class").value.trim(),
-      document.getElementById("reg-email").value.trim(),
-      password
+    currentStudent = normalizeStudent(
+      await API.register(
+        document.getElementById("reg-name").value.trim(),
+        document.getElementById("reg-class").value.trim(),
+        document.getElementById("reg-email").value.trim(),
+        password
+      )
     );
     saveSession(currentStudent);
     showApp();
@@ -614,21 +835,30 @@ document.querySelectorAll("[data-catalog]").forEach((btn) => {
   btn.addEventListener("click", () => showCatalogPanel(btn.dataset.catalog));
 });
 
+document.querySelectorAll("[data-community-tab]").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll("[data-community-tab]").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    communityTab = btn.dataset.communityTab;
+    renderCommunity();
+  });
+});
+
 document.getElementById("form-offer").addEventListener("submit", async (ev) => {
   ev.preventDefault();
   const skillId = document.getElementById("offer-skill").value;
   if (!skillId) return toast("Seleziona una competenza", "error");
   try {
     await API.createOffer({
-      studentId: currentStudent.studentId,
+      studentId: getStudentId(),
       skillId,
       level: document.getElementById("offer-level").value,
       note: document.getElementById("offer-note").value,
     });
-    toast("Offerta pubblicata!", "success");
+    toast("Offerta pubblicata! Visibile in Bacheca.", "success");
     document.getElementById("form-offer").reset();
-    renderCatalog();
-    renderDashboard();
+    showCatalogPanel("browse");
+    await refreshAfterPublish();
   } catch (e) {
     toast(e.message, "error");
   }
@@ -640,15 +870,15 @@ document.getElementById("form-request").addEventListener("submit", async (ev) =>
   if (!skillId) return toast("Seleziona una competenza", "error");
   try {
     await API.createRequest({
-      studentId: currentStudent.studentId,
+      studentId: getStudentId(),
       skillId,
       minLevel: document.getElementById("request-min-level").value,
       note: document.getElementById("request-note").value,
     });
-    toast("Richiesta pubblicata!", "success");
+    toast("Richiesta pubblicata! Ora puoi proporre scambi in Bacheca.", "success");
     document.getElementById("form-request").reset();
-    renderCatalog();
-    renderDashboard();
+    showCatalogPanel("browse");
+    await refreshAfterPublish();
   } catch (e) {
     toast(e.message, "error");
   }
@@ -659,9 +889,13 @@ document.getElementById("form-review").addEventListener("submit", async (ev) => 
   const exchangeId = document.getElementById("review-exchange-id").value;
   const stars = parseInt(document.getElementById("review-stars").value, 10);
   const comment = document.getElementById("review-comment").value.trim();
+  if (!exchangeId) return toast("Scambio non valido", "error");
+  if (stars < 1 || stars > 5) return toast("Seleziona un voto da 1 a 5 stelle", "error");
+  const submitBtn = ev.target.querySelector('button[type="submit"]');
+  if (submitBtn) submitBtn.disabled = true;
   try {
-    await API.addReview(exchangeId, currentStudent.studentId, stars, comment);
-    currentStudent = await API.json("/api/students/" + currentStudent.studentId);
+    await API.addReview(exchangeId, getStudentId(), stars, comment);
+    currentStudent = normalizeStudent(await API.json("/api/students/" + getStudentId()));
     saveSession(currentStudent);
     document.getElementById("modal-review").close();
     toast("Grazie! Recensione inviata.", "success");
@@ -669,6 +903,8 @@ document.getElementById("form-review").addEventListener("submit", async (ev) => 
     renderDashboard();
   } catch (e) {
     toast(e.message, "error");
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
   }
 });
 
@@ -690,8 +926,15 @@ setupStarPicker();
 
 currentStudent = loadSession();
 if (currentStudent) {
-  showApp();
-  showPage("dashboard");
+  if (!currentStudent.studentId) {
+    clearSession();
+    currentStudent = null;
+    showLogin();
+    toast("Sessione aggiornata: accedi di nuovo.", "default");
+  } else {
+    showApp();
+    showPage("dashboard");
+  }
 } else {
   showLogin();
 }

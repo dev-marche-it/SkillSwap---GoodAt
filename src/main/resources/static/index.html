@@ -98,6 +98,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1h-5v-7H9v7H4a1 1 0 01-1-1V9.5z"/></svg>
           Home
         </a>
+        <a href="#" class="nav-item" data-page="community">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          Bacheca
+        </a>
         <a href="#" class="nav-item" data-page="matches">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 11c1.66 0 3-1.34 3-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V20h14v-3.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 2.05 1.97 3.45V20h6v-3.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
           Trova match
@@ -131,8 +135,9 @@
 
     <div class="main-area">
       <header class="topbar">
-        <button type="button" class="btn-icon menu-toggle" id="menu-toggle" aria-label="Menu">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        <button type="button" class="btn-icon menu-toggle" id="menu-toggle" aria-label="Apri menu di navigazione" title="Menu — Home, Bacheca, Scambi, Pubblica skill…">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          <span class="menu-toggle-label">Menu</span>
         </button>
         <div class="topbar-titles">
           <h1 id="page-title">Home</h1>
@@ -161,13 +166,18 @@
           </div>
           <h3 class="section-label">Cosa vuoi fare?</h3>
           <div class="action-grid">
+            <button type="button" class="action-card" data-goto="community">
+              <span class="action-icon teal">👥</span>
+              <strong>Bacheca studenti</strong>
+              <span>Offerte e richieste degli altri compagni</span>
+            </button>
             <button type="button" class="action-card" data-goto="matches">
-              <span class="action-icon teal">🔍</span>
+              <span class="action-icon blue">🔍</span>
               <strong>Cerca un match</strong>
               <span>Trova chi può aiutarti o uno scambio reciproco</span>
             </button>
             <button type="button" class="action-card" data-goto="exchanges">
-              <span class="action-icon blue">🔄</span>
+              <span class="action-icon purple">🔄</span>
               <strong>Gestisci scambi</strong>
               <span>Accetta, completa o lascia una recensione</span>
             </button>
@@ -177,11 +187,28 @@
               <span>Offri ciò che sai o chiedi aiuto</span>
             </button>
             <button type="button" class="action-card" data-goto="ranking">
-              <span class="action-icon purple">🏆</span>
+              <span class="action-icon amber">🏆</span>
               <strong>Vedi classifica</strong>
               <span>Scopri i migliori tutor della scuola</span>
             </button>
           </div>
+          <h3 class="section-label" style="margin-top:1.5rem">In evidenza sulla bacheca</h3>
+          <div id="dashboard-community" class="card-list"></div>
+        </section>
+
+        <!-- Community -->
+        <section id="page-community" class="page hidden">
+          <div class="info-banner">
+            <strong>Bacheca scolastica</strong>
+            <span>Esplora cosa offrono e cercano gli altri studenti <em>adesso</em>, oppure consulta il tuo <strong>storico</strong> di pubblicazioni (anche concluse).</span>
+          </div>
+          <div class="segmented segmented-community">
+            <button type="button" class="segmented-btn active" data-community-tab="offers" title="Offerte attive pubblicate da altri studenti">Offerte altrui · oggi</button>
+            <button type="button" class="segmented-btn" data-community-tab="requests" title="Richieste aperte di altri studenti">Richieste altrui · oggi</button>
+            <button type="button" class="segmented-btn" data-community-tab="mine" title="Tutte le tue offerte e richieste, attive e passate">Il mio storico</button>
+          </div>
+          <p id="community-tab-hint" class="tab-context-hint" role="status"></p>
+          <div id="community-list" class="card-list"></div>
         </section>
 
         <!-- Matches -->
@@ -205,11 +232,21 @@
         <!-- Catalog -->
         <section id="page-catalog" class="page hidden">
           <div class="catalog-tabs segmented">
-            <button type="button" class="segmented-btn active" data-catalog="offer">Offro una competenza</button>
+            <button type="button" class="segmented-btn" data-catalog="offer">Offro una competenza</button>
             <button type="button" class="segmented-btn" data-catalog="request">Cerco aiuto</button>
-            <button type="button" class="segmented-btn" data-catalog="browse">Esplora</button>
+            <button type="button" class="segmented-btn active" data-catalog="browse">Esplora bacheca</button>
           </div>
-          <div id="catalog-panel-offer" class="catalog-panel">
+          <div id="catalog-panel-browse" class="catalog-panel">
+            <div class="card">
+              <h3>Offerte attive degli studenti</h3>
+              <div id="catalog-offers" class="table-wrap"></div>
+            </div>
+            <div class="card">
+              <h3>Richieste degli studenti</h3>
+              <div id="catalog-requests" class="table-wrap"></div>
+            </div>
+          </div>
+          <div id="catalog-panel-offer" class="catalog-panel hidden">
             <div class="card form-card">
               <h3>Nuova offerta</h3>
               <p class="card-desc">Indica cosa puoi insegnare e a che livello.</p>
@@ -259,16 +296,6 @@
               </form>
             </div>
           </div>
-          <div id="catalog-panel-browse" class="catalog-panel hidden">
-            <div class="card">
-              <h3>Offerte attive</h3>
-              <div id="catalog-offers" class="table-wrap"></div>
-            </div>
-            <div class="card">
-              <h3>Richieste degli studenti</h3>
-              <div id="catalog-requests" class="table-wrap"></div>
-            </div>
-          </div>
         </section>
 
         <!-- Ranking -->
@@ -296,7 +323,7 @@
 
   <!-- Modal recensione -->
   <dialog id="modal-review" class="modal">
-    <form method="dialog" id="form-review" class="modal-body">
+    <form id="form-review" class="modal-body">
       <h3>Lascia una recensione</h3>
       <p class="card-desc">Valuta l’esperienza con il tuo compagno di scambio.</p>
       <input type="hidden" id="review-exchange-id">
@@ -324,7 +351,7 @@
 
   <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
-  <script src="/js/api.js"></script>
-  <script src="/js/app.js"></script>
+  <script src="/js/api.js?v=3"></script>
+  <script src="/js/app.js?v=3"></script>
 </body>
 </html>

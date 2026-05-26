@@ -26,7 +26,7 @@ public class AuthService {
             throw new IllegalArgumentException("Email già registrata: " + email);
         }
 
-        String id = "S" + (state.getStudents().size() + 1);
+        String id = EntityIdGenerator.nextStudentId(state);
         Student student = new Student(id, name, className, email, PasswordHasher.hash(password));
         state.getStudents().add(student);
         return student;

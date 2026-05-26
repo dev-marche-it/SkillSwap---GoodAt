@@ -14,7 +14,11 @@ const API = {
       }
     }
     if (!res.ok) {
-      const msg = data && data.error ? data.error : `Errore HTTP ${res.status}`;
+      const msg =
+        (data && data.error) ||
+        (data && data.message) ||
+        (typeof data === "string" ? data : null) ||
+        `Errore HTTP ${res.status}`;
       throw new Error(msg);
     }
     return data;
@@ -48,31 +52,58 @@ const API = {
   },
 
   exchanges(studentId) {
-    const q = studentId ? `?studentId=${encodeURIComponent(studentId)}` : "";
+    const q = `?studentId=${encodeURIComponent(studentId)}`;
     return this.json("/api/exchanges" + q);
   },
 
-  proposeExchange(offerId, requestId) {
+  community(studentId) {
+    return this.json(`/api/community?studentId=${encodeURIComponent(studentId)}`);
+  },
+
+  proposeExchange(offerId, requestId, requesterStudentId) {
+    const sid = String(requesterStudentId || "").trim();
+    if (!sid) {
+      return Promise.reject(new Error("Sessione scaduta: esci e accedi di nuovo."));
+    }
     return this.json("/api/exchanges", {
       method: "POST",
-      body: JSON.stringify({ offerId, requestId }),
+      body: JSON.stringify({ offerId, requestId, requesterStudentId: sid, studentId: sid }),
     });
   },
 
-  acceptExchange(id) {
-    return this.json(`/api/exchanges/${id}/accept`, { method: "PUT" });
+  acceptExchange(id, studentId) {
+    return this.json(`/api/exchanges/${id}/accept`, {
+      method: "PUT",
+      body: JSON.stringify({ studentId }),
+    });
   },
-  completeExchange(id) {
-    return this.json(`/api/exchanges/${id}/complete`, { method: "PUT" });
+  completeExchange(id, studentId) {
+    return this.json(`/api/exchanges/${id}/complete`, {
+      method: "PUT",
+      body: JSON.stringify({ studentId }),
+    });
   },
-  cancelExchange(id) {
-    return this.json(`/api/exchanges/${id}/cancel`, { method: "PUT" });
+  cancelExchange(id, studentId) {
+    return this.json(`/api/exchanges/${id}/cancel`, {
+      method: "PUT",
+      body: JSON.stringify({ studentId }),
+    });
   },
 
   addReview(exchangeId, reviewerStudentId, stars, comment) {
+    const sid = String(reviewerStudentId || "").trim();
+    if (!sid) {
+      return Promise.reject(new Error("Sessione scaduta: esci e accedi di nuovo."));
+    }
     return this.json("/api/reviews", {
       method: "POST",
-      body: JSON.stringify({ exchangeId, reviewerStudentId, stars, comment }),
+      body: JSON.stringify({
+        exchangeId,
+        reviewerStudentId: sid,
+        studentId: sid,
+        stars: Number(stars),
+        comment: comment || "",
+      }),
     });
   },
 
