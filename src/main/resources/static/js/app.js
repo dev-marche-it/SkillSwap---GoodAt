@@ -81,6 +81,9 @@ function setActiveNav(page) {
   document.querySelectorAll(".nav-item").forEach((el) => {
     el.classList.toggle("active", el.dataset.page === page);
   });
+  document.querySelectorAll(".mobile-nav-item").forEach((el) => {
+    el.classList.toggle("active", el.dataset.page === page);
+  });
   const meta = PAGE_META[page] || PAGE_META.dashboard;
   document.getElementById("page-title").textContent = meta.title;
   document.getElementById("page-subtitle").textContent = meta.subtitle;
@@ -114,8 +117,7 @@ function updateSidebarUser() {
 }
 
 function closeSidebar() {
-  document.getElementById("sidebar").classList.remove("open");
-  document.getElementById("sidebar-backdrop").classList.remove("open");
+  /* Sidebar fissa su desktop; su mobile si usa la barra inferiore */
 }
 
 // ─── UI helpers ───────────────────────────────────────────
@@ -139,10 +141,10 @@ function escapeHtml(str) {
   return d.innerHTML;
 }
 
-function emptyState(icon, title, desc) {
+function emptyState(iconName, title, desc) {
   return `
     <div class="empty-state">
-      <div class="empty-icon">${icon}</div>
+      <div class="empty-icon">${icon(iconName, 28)}</div>
       <p>${escapeHtml(title)}</p>
       <span>${escapeHtml(desc)}</span>
     </div>`;
@@ -236,7 +238,7 @@ async function renderDashboard() {
     const topOffers = communityData.activeOffers.slice(0, 3);
     preview.innerHTML = topOffers.length
       ? topOffers.map((o) => renderOfferCard(o, communityData.myRequests, false)).join("")
-      : emptyState("👥", "Bacheca vuota", "Sii il primo a pubblicare un'offerta o una richiesta!");
+      : emptyState("users", "Bacheca vuota", "Sii il primo a pubblicare un'offerta o una richiesta!");
     bindCommunityActions(preview);
   } catch (e) {
     statsEl.innerHTML = `<p class="alert alert-error">${escapeHtml(e.message)}</p>`;
@@ -264,7 +266,7 @@ async function renderMatches() {
 
     if (!list.length) {
       box.innerHTML = emptyState(
-        "🔍",
+        "search",
         "Nessun match al momento",
         "Pubblica una richiesta in «Pubblica skill» o attendi nuove offerte dai compagni."
       );
@@ -329,7 +331,7 @@ async function renderExchanges() {
 
     if (!list.length) {
       box.innerHTML = emptyState(
-        "🔄",
+        "swap",
         "Nessuno scambio",
         "Vai in «Trova match» e proponi il primo scambio con un compagno."
       );
@@ -378,8 +380,8 @@ function renderExchangeCard(e) {
       </div>
       ${roleHint}
       <div class="exchange-lines">
-        <div>📤 <strong>${escapeHtml(e.offerStudentName)}</strong> offre: ${escapeHtml(e.offerSkillName)}</div>
-        <div>📥 <strong>${escapeHtml(e.requestStudentName)}</strong> cerca: ${escapeHtml(e.requestSkillName)}</div>
+        <div class="exchange-line">${icon("offer", 18)}<span><strong>${escapeHtml(e.offerStudentName)}</strong> offre: ${escapeHtml(e.offerSkillName)}</span></div>
+        <div class="exchange-line">${icon("request", 18)}<span><strong>${escapeHtml(e.requestStudentName)}</strong> cerca: ${escapeHtml(e.requestSkillName)}</span></div>
       </div>
       <div class="card-actions">${actions.join("") || '<span class="card-desc">Nessuna azione disponibile per te in questo stato.</span>'}</div>
     </article>`;
@@ -437,12 +439,86 @@ function openReviewModal(exchangeId) {
 
 function setupStarPicker() {
   document.querySelectorAll("#star-picker button").forEach((btn) => {
+    btn.innerHTML = icon("star", 22);
     btn.addEventListener("click", () => {
       selectedStars = parseInt(btn.dataset.star, 10);
       document.getElementById("review-stars").value = String(selectedStars);
       document.querySelectorAll("#star-picker button").forEach((b, i) => {
         b.classList.toggle("active", i < selectedStars);
       });
+    });
+  });
+}
+
+function fillIconSlots(root = document) {
+  root.querySelectorAll("[data-icon-slot]").forEach((el) => {
+    const name = el.dataset.iconSlot;
+    const size = el.classList.contains("action-icon") ? 22 : 28;
+    el.innerHTML = icon(name, size);
+  });
+}
+
+function initLoginLogo() {
+  const stage = document.getElementById("login-logo-stage");
+  if (!stage || typeof loginAnimatedLogo !== "function") return;
+  stage.innerHTML = loginAnimatedLogo();
+}
+
+function initLoginFeatures() {
+  const list = document.getElementById("login-features-list");
+  if (!list) return;
+  const items = [
+    { icon: "search", text: "Trova match intelligenti" },
+    { icon: "swap", text: "Gestisci scambi in pochi click" },
+    { icon: "trophy", text: "Costruisci la tua reputazione" },
+  ];
+  list.innerHTML = items
+    .map((item) => `<li>${icon(item.icon, 18)}<span>${escapeHtml(item.text)}</span></li>`)
+    .join("");
+}
+
+function initHeroRatingIcon() {
+  const slot = document.querySelector(".rating-star-icon");
+  if (slot) slot.innerHTML = icon("star", 14);
+}
+
+const THEME_KEY = "skillswap_theme";
+
+function applyTheme(theme) {
+  const isDark = theme === "dark";
+  document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+  document.querySelectorAll(".theme-switch-input").forEach((input) => {
+    input.checked = isDark;
+    input.setAttribute("aria-label", isDark ? "Passa a modalità chiara" : "Passa a modalità scura");
+  });
+  document.querySelectorAll(".theme-switch-sun").forEach((el) => {
+    el.classList.toggle("is-active", !isDark);
+  });
+  document.querySelectorAll(".theme-switch-moon").forEach((el) => {
+    el.classList.toggle("is-active", isDark);
+  });
+}
+
+function initThemeIcons() {
+  document.querySelectorAll(".theme-switch-sun").forEach((el) => {
+    el.innerHTML = icon("sun", 18);
+  });
+  document.querySelectorAll(".theme-switch-moon").forEach((el) => {
+    el.innerHTML = icon("moon", 18);
+  });
+}
+
+function initTheme() {
+  initThemeIcons();
+  const saved = localStorage.getItem(THEME_KEY);
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  applyTheme(saved || (prefersDark ? "dark" : "light"));
+
+  document.querySelectorAll(".theme-switch-input").forEach((input) => {
+    input.addEventListener("change", () => {
+      const next = input.checked ? "dark" : "light";
+      localStorage.setItem(THEME_KEY, next);
+      applyTheme(next);
     });
   });
 }
@@ -488,11 +564,11 @@ function renderRequestCard(req) {
 
 const COMMUNITY_TAB_HINTS = {
   offers:
-    "📌 <strong>In tempo reale:</strong> solo offerte <em>attive</em> pubblicate da altri studenti. Quelle concluse o disattivate non compaiono qui.",
+    "<strong>In tempo reale:</strong> solo offerte <em>attive</em> pubblicate da altri studenti. Quelle concluse o disattivate non compaiono qui.",
   requests:
-    "📌 <strong>In tempo reale:</strong> richieste <em>aperte</em> degli altri studenti. Non è lo storico: sono annunci ancora validi.",
+    "<strong>In tempo reale:</strong> richieste <em>aperte</em> degli altri studenti. Non è lo storico: sono annunci ancora validi.",
   mine:
-    "🗂️ <strong>Il tuo archivio:</strong> tutte le offerte e richieste che hai pubblicato, <em>attive e passate</em> (anche concluse dopo uno scambio).",
+    "<strong>Il tuo archivio:</strong> tutte le offerte e richieste che hai pubblicato, <em>attive e passate</em> (anche concluse dopo uno scambio).",
 };
 
 function setCommunityTabHint(tab) {
@@ -546,7 +622,7 @@ async function renderCommunity() {
         `<h3 class="section-label with-badge"><span>Le tue offerte attive</span><span class="section-badge live">Oggi</span></h3>` +
         (activeOffers.length
           ? activeOffers.map(renderMyOfferCard).join("")
-          : emptyState("📤", "Nessuna offerta attiva", "Pubblica ciò che sai insegnare da «Pubblica skill».")) +
+          : emptyState("upload", "Nessuna offerta attiva", "Pubblica ciò che sai insegnare da «Pubblica skill».")) +
         `<h3 class="section-label with-badge" style="margin-top:1.5rem"><span>Le tue offerte passate</span><span class="section-badge archive">Storico</span></h3>` +
         (pastOffers.length
           ? pastOffers.map(renderMyOfferCard).join("")
@@ -554,13 +630,13 @@ async function renderCommunity() {
         `<h3 class="section-label with-badge" style="margin-top:1.5rem"><span>Le tue richieste pubblicate</span><span class="section-badge archive">Storico</span></h3>` +
         (data.myRequests.length
           ? data.myRequests.map(renderMyRequestCard).join("")
-          : emptyState("📥", "Nessuna richiesta", "Pubblica su cosa hai bisogno di aiuto."));
+          : emptyState("inbox", "Nessuna richiesta", "Pubblica su cosa hai bisogno di aiuto."));
       return;
     }
 
     if (!items.length) {
       box.innerHTML = emptyState(
-        "👥",
+        "board",
         "Nessun contenuto",
         communityTab === "offers"
           ? "Nessuna offerta attiva al momento dagli altri studenti."
@@ -667,11 +743,11 @@ async function renderBrowseTables() {
 
     offersEl.innerHTML = data.activeOffers.length
       ? data.activeOffers.map((o) => renderOfferCard(o, data.myRequests)).join("")
-      : emptyState("📋", "Nessuna offerta attiva", "Sii il primo a pubblicare un'offerta!");
+      : emptyState("board", "Nessuna offerta attiva", "Sii il primo a pubblicare un'offerta!");
 
     requestsEl.innerHTML = data.openRequests.length
       ? data.openRequests.map(renderRequestCard).join("")
-      : emptyState("📋", "Nessuna richiesta", "Pubblica la tua prima richiesta di aiuto.");
+      : emptyState("inbox", "Nessuna richiesta", "Pubblica la tua prima richiesta di aiuto.");
 
     bindCommunityActions(offersEl);
   } catch (e) {
@@ -698,7 +774,6 @@ async function renderRanking() {
 
     const top3 = list.slice(0, 3);
     const order = top3.length >= 3 ? [1, 0, 2] : top3.map((_, i) => i);
-    const medals = ["🥇", "🥈", "🥉"];
     podium.innerHTML = order
       .map((idx, displayIdx) => {
         const s = top3[idx];
@@ -706,9 +781,9 @@ async function renderRanking() {
         const placeClass = displayIdx === 0 && top3.length >= 2 ? "first" : "";
         return `
           <div class="podium-item ${placeClass}">
-            <div class="place">${medals[displayIdx] || displayIdx + 1}</div>
+            <div class="place">${icon("medal1", 28)}</div>
             <strong>${escapeHtml(s.name)}</strong>
-            <div class="rating">★ ${s.ratingAvg.toFixed(1)}</div>
+            <div class="rating">${icon("star", 16)} ${s.ratingAvg.toFixed(1)}</div>
             <small style="color:var(--text-muted)">${s.ratingCount} voti</small>
           </div>`;
       })
@@ -722,7 +797,7 @@ async function renderRanking() {
         <td>${i + 1}</td>
         <td><strong>${escapeHtml(s.name)}</strong></td>
         <td>${escapeHtml(s.className)}</td>
-        <td><span style="color:var(--primary-dark);font-weight:700">★ ${s.ratingAvg.toFixed(1)}</span></td>
+        <td><span class="table-rating">${icon("star", 14)} ${s.ratingAvg.toFixed(1)}</span></td>
         <td>${s.ratingCount}</td>
       </tr>`
       )
@@ -811,12 +886,17 @@ document.getElementById("btn-logout").addEventListener("click", () => {
   toast("Sei uscito dall’account");
 });
 
-document.querySelectorAll(".nav-item[data-page]").forEach((a) => {
-  a.addEventListener("click", (ev) => {
-    ev.preventDefault();
-    showPage(a.dataset.page);
+function bindPageNavLinks(selector) {
+  document.querySelectorAll(selector).forEach((a) => {
+    a.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      showPage(a.dataset.page);
+    });
   });
-});
+}
+
+bindPageNavLinks(".nav-item[data-page]");
+bindPageNavLinks(".mobile-nav-item[data-page]");
 
 document.querySelectorAll("[data-goto]").forEach((btn) => {
   btn.addEventListener("click", () => showPage(btn.dataset.goto));
@@ -912,15 +992,12 @@ document.getElementById("review-cancel").addEventListener("click", () => {
   document.getElementById("modal-review").close();
 });
 
-document.getElementById("menu-toggle").addEventListener("click", () => {
-  document.getElementById("sidebar").classList.add("open");
-  document.getElementById("sidebar-backdrop").classList.add("open");
-});
-
-document.getElementById("sidebar-close").addEventListener("click", closeSidebar);
-document.getElementById("sidebar-backdrop").addEventListener("click", closeSidebar);
-
 setupStarPicker();
+initLoginLogo();
+initLoginFeatures();
+initTheme();
+fillIconSlots();
+initHeroRatingIcon();
 
 // ─── Init ──────────────────────────────────────────────────
 
