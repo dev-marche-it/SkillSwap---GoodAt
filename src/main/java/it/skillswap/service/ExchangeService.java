@@ -43,67 +43,91 @@ public class ExchangeService {
             throw new IllegalStateException("Uno studente non può fare match con sé stesso.");
         }
 
+        if (hasActiveExchangeFor(offerId, requestId)) {
+            throw new IllegalStateException(
+                    "Esiste già uno scambio attivo per questa coppia offerta/richiesta.");
+        }
+
         Exchange exchange = new Exchange(exchangeId, offer, request);
         state.getExchanges().add(exchange);
         return exchange;
     }
 
     /**
-     * Accetta uno scambio proposto.
-     *
-     * @param exchangeId id dello scambio
-     * @return scambio aggiornato in stato {@link ExchangeStatus#ACCEPTED}
-     * @throws IllegalArgumentException se l'id è sconosciuto
-     * @throws InvalidStateTransitionException se lo stato attuale non è {@link ExchangeStatus#PROPOSED}
+     * Accetta uno scambio proposto (solo il proprietario dell'offerta).
      */
-    public Exchange accept(String exchangeId) {
-        Exchange exchange = findExchange(exchangeId);
-        if (exchange == null) throw new IllegalArgumentException("Exchange non trovato: " + exchangeId);
+    public Exchange accept(String exchangeId, String studentId) {
+        Exchange exchange = requireExchange(exchangeId);
         if (exchange.getStatus() != ExchangeStatus.PROPOSED) {
             throw new InvalidStateTransitionException(exchange.getStatus(), ExchangeStatus.ACCEPTED);
         }
-
+        requireOfferOwner(exchange, studentId);
         exchange.setStatus(ExchangeStatus.ACCEPTED);
         return exchange;
     }
 
     /**
-     * Segna come completato uno scambio accettato e disattiva l'offerta collegata.
-     *
-     * @param exchangeId id dello scambio
-     * @return scambio aggiornato in stato {@link ExchangeStatus#COMPLETED}
-     * @throws IllegalArgumentException se l'id è sconosciuto
-     * @throws InvalidStateTransitionException se lo stato attuale non è {@link ExchangeStatus#ACCEPTED}
+     * Segna come completato uno scambio accettato (entrambi i partecipanti).
      */
-    public Exchange complete(String exchangeId) {
-        Exchange exchange = findExchange(exchangeId);
-        if (exchange == null) throw new IllegalArgumentException("Exchange non trovato: " + exchangeId);
+    public Exchange complete(String exchangeId, String studentId) {
+        Exchange exchange = requireExchange(exchangeId);
         if (exchange.getStatus() != ExchangeStatus.ACCEPTED) {
             throw new InvalidStateTransitionException(exchange.getStatus(), ExchangeStatus.COMPLETED);
         }
-
+        requireParticipant(exchange, studentId);
         exchange.setStatus(ExchangeStatus.COMPLETED);
         exchange.getOffer().setActive(false);
         return exchange;
     }
 
     /**
-     * Annulla uno scambio ancora solo proposto.
-     *
-     * @param exchangeId id dello scambio
-     * @return scambio aggiornato in stato {@link ExchangeStatus#CANCELLED}
-     * @throws IllegalArgumentException se l'id è sconosciuto
-     * @throws InvalidStateTransitionException se lo stato attuale non è {@link ExchangeStatus#PROPOSED}
+     * Annulla uno scambio proposto (entrambi i partecipanti).
      */
-    public Exchange cancel(String exchangeId) {
-        Exchange exchange = findExchange(exchangeId);
-        if (exchange == null) throw new IllegalArgumentException("Exchange non trovato: " + exchangeId);
+    public Exchange cancel(String exchangeId, String studentId) {
+        Exchange exchange = requireExchange(exchangeId);
         if (exchange.getStatus() != ExchangeStatus.PROPOSED) {
             throw new InvalidStateTransitionException(exchange.getStatus(), ExchangeStatus.CANCELLED);
         }
-
+        requireParticipant(exchange, studentId);
         exchange.setStatus(ExchangeStatus.CANCELLED);
         return exchange;
+    }
+
+    private boolean hasActiveExchangeFor(String offerId, String requestId) {
+        return state.getExchanges().stream()
+                .anyMatch(e -> e.getOffer().getOfferId().equals(offerId)
+                        && e.getRequest().getRequestId().equals(requestId)
+                        && (e.getStatus() == ExchangeStatus.PROPOSED
+                                || e.getStatus() == ExchangeStatus.ACCEPTED));
+    }
+
+    private Exchange requireExchange(String exchangeId) {
+        Exchange exchange = findExchange(exchangeId);
+        if (exchange == null) {
+            throw new IllegalArgumentException("Exchange non trovato: " + exchangeId);
+        }
+        return exchange;
+    }
+
+    private void requireParticipant(Exchange exchange, String studentId) {
+        if (studentId == null || studentId.isBlank()) {
+            throw new IllegalArgumentException("studentId obbligatorio");
+        }
+        boolean participant = exchange.getOffer().getStudent().getStudentId().equals(studentId)
+                || exchange.getRequest().getStudent().getStudentId().equals(studentId);
+        if (!participant) {
+            throw new IllegalStateException("Non sei coinvolto in questo scambio.");
+        }
+    }
+
+    private void requireOfferOwner(Exchange exchange, String studentId) {
+        if (studentId == null || studentId.isBlank()) {
+            throw new IllegalArgumentException("studentId obbligatorio");
+        }
+        if (!exchange.getOffer().getStudent().getStudentId().equals(studentId)) {
+            throw new IllegalStateException(
+                    "Solo chi ha pubblicato l'offerta può accettare la proposta di scambio.");
+        }
     }
 
     private Offer findOffer(String offerId) {

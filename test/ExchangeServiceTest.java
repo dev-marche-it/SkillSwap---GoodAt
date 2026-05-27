@@ -83,7 +83,7 @@ public class ExchangeServiceTest {
         Exchange exchange = exchangeService.propose("E1", "O1", "R1");
 
         // WHEN: Accept exchange
-        Exchange result = exchangeService.accept("E1");
+        Exchange result = exchangeService.accept("E1", "S1");
 
         // THEN: Status changed to ACCEPTED
         assertEquals(ExchangeStatus.ACCEPTED, result.getStatus());
@@ -93,22 +93,36 @@ public class ExchangeServiceTest {
     public void shouldThrowInvalidStateTransitionException_WhenAcceptingAlreadyAccepted() {
         // GIVEN: Exchange already accepted
         exchangeService.propose("E1", "O1", "R1");
-        exchangeService.accept("E1");
+        exchangeService.accept("E1", "S1");
 
         // WHEN/THEN: Cannot accept again
         assertThrows(InvalidStateTransitionException.class, () -> {
-            exchangeService.accept("E1");
+            exchangeService.accept("E1", "S1");
         });
+    }
+
+    @Test
+    public void shouldRejectDuplicateActiveExchangeForSameOfferAndRequest() {
+        exchangeService.propose("E1", "O1", "R1");
+
+        assertThrows(IllegalStateException.class, () -> exchangeService.propose("E2", "O1", "R1"));
+    }
+
+    @Test
+    public void shouldRejectAcceptByNonOfferOwner() {
+        exchangeService.propose("E1", "O1", "R1");
+
+        assertThrows(IllegalStateException.class, () -> exchangeService.accept("E1", "S2"));
     }
 
     @Test
     public void shouldCompleteExchange_WhenStatusIsACCEPTED() {
         // GIVEN: Exchange in ACCEPTED status
         exchangeService.propose("E1", "O1", "R1");
-        exchangeService.accept("E1");
+        exchangeService.accept("E1", "S1");
 
         // WHEN: Complete exchange
-        Exchange result = exchangeService.complete("E1");
+        Exchange result = exchangeService.complete("E1", "S2");
 
         // THEN: Status changed to COMPLETED and offer deactivated
         assertEquals(ExchangeStatus.COMPLETED, result.getStatus());
